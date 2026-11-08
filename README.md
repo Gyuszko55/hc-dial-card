@@ -1,5 +1,8 @@
 # HC Dial Card
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![Validate](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml/badge.svg)](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml)
+
 A round wall-thermostat card for Home Assistant. It works with **any `climate` entity** – single target or heat/cool range – and can optionally **follow the room your phone is in**, so the card always shows the thermostat of the room you are standing in.
 
 ![HC Dial Card – view, setting the cooling target, switching off](images/overview.png)
