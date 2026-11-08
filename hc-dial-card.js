@@ -45,7 +45,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.9.0";
+const HC_DIAL_VERSION = "1.9.1";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -87,7 +87,7 @@ const STR = {
     menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
     presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ", shadowTag: "ÁRNYÉK",
     presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
-      home: "Otthon", boost: "Gyors felfűtés", activity: "Aktivitás", auto: "Auto" },
+      home: "Otthon", boost: "Gyors felfűtés", activity: "Aktivitás", auto: "Auto", none: "Nincs" },
   },
   en: {
     days: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"], target: "SET", now: "now", was: "was", on: "ON", off: "OFF",
@@ -98,7 +98,7 @@ const STR = {
     menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
     presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT", shadowTag: "SHADOW",
     presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
-      home: "Home", boost: "Boost", activity: "Activity", auto: "Auto" },
+      home: "Home", boost: "Boost", activity: "Activity", auto: "Auto", none: "None" },
   },
   de: {
     days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
@@ -109,7 +109,7 @@ const STR = {
     menuTitle: "Dieses Gerät folgt:", menuDefault: "Standard", menuNone: "Nicht folgen", menuClose: "Schließen",
     presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN", shadowTag: "SCHATTEN",
     presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
-      home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto" },
+      home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto", none: "Keine" },
   },
 };
 const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
