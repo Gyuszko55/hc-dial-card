@@ -91,6 +91,26 @@ rooms:
 
 A helyiségneveket a HA terület nevével vagy azonosítójával veti össze, kis- és nagybetűtől, ékezettől függetlenül.
 
+### A telefonok beállítása (Bermuda)
+
+Kell hozzá a [Bermuda](https://github.com/agittins/bermuda) (HACS) és területekhez rendelt Bluetooth-vevők: ESPHome `bluetooth_proxy` panelek, Bluetooth-átjáróként működő Shelly Gen2+ eszközök vagy a HA gép saját adaptere. Nagyjából helyiségenként egy vevővel lesz megbízható.
+
+**Android** – a Companion app iBeacon jelet sugároz:
+
+1. Companion app → *Beállítások → Companion app → Szenzorok kezelése → BLE jeladó*: kapcsold be a szenzort és a **Sugárzás** kapcsolót. Ezt magán a telefonon kell bekapcsolni; amíg ki van kapcsolva, a távoli parancs hatástalan.
+2. *Adóteljesítmény*: **Magas** (vagy Közepes), *Hirdetési mód*: **Kiegyensúlyozott**. Az Ultra alacsony / Alacsony fogyasztás többnyire túl gyenge a helyiség felismeréséhez. Később távolról is állítható a `command_ble_transmitter` értesítés-paranccsal.
+3. Android beállítások → Alkalmazások → Home Assistant → Akkumulátor: **Korlátlan**, különben a rendszer a háttérben leállíthatja a jeladót.
+4. HA → *Beállítások → Eszközök és szolgáltatások → Bermuda → Konfigurálás → Eszközök kiválasztása*: válaszd ki a jeladót (az `UUID_major_minor` azonosító a BLE jeladó szenzor tulajdonságai között látszik).
+5. A Bermuda létrehozza a telefon *Area* (helyiség) szenzorát – ezt írd a `follow`-ba.
+
+**iPhone** – az iOS Companion app a háttérben nem tud jeladót sugározni, ezért a telefont a saját Bluetooth-jele alapján, az IRK-kulcsa (identity resolving key) segítségével ismeri fel:
+
+1. Szerezd meg az IRK-t. Ugyanazzal az Apple ID-val belépett Mac-en: *Kulcskarika* (Keychain Access) → keresés: `Bluetooth` → nyisd meg azt a bejegyzést, amelynek `Public` címe megegyezik az iPhone Bluetooth-címével (*Beállítások → Általános → Névjegy*) → *Jelszó megjelenítése* → a **Remote IRK** alatti base64 érték. Mac nélkül: ESP32-es IRK-kiolvasó firmware (pl. az ESPHome-alapú [irk-capture](https://github.com/DerekSeaman/irk-capture)), amelyhez párosítod az iPhone-t.
+2. HA → *Integráció hozzáadása* → **Private BLE Device** → illeszd be az IRK-t. Az iPhone legyen a közelben, bekapcsolt Bluetooth-szal – a HA ellenőrzi, hogy látja-e.
+3. Bermuda → *Konfigurálás → Eszközök kiválasztása*: válaszd ki az új privát eszközt; az *Area* szenzora kerül a `follow`-ba.
+
+Apple Watch-csal és iPaddel ugyanígy működik. Mindenkinek saját szenzor kell a `follow`-ban; közös vagy fali készüléken a gyűrű hosszú nyomására nyíló menüben választható, melyik jeladót kövesse (vagy egyiket se).
+
 ## Grafikus szerkesztő
 
 A kártyát a vezérlőpult szerkesztőjében veheted fel (**Kártya hozzáadása → HC Dial Card**), vagy egy meglévőt a **Szerkesztés** gombbal nyithatsz meg. A szerkesztő ugyanazt a YAML-t írja, mint fent, így bármikor átválthatsz a kódszerkesztőre.

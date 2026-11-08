@@ -91,6 +91,26 @@ rooms:
 
 Room names are matched case- and accent-insensitively against the Home Assistant area name or area id.
 
+### Setting up the phones (Bermuda)
+
+You need [Bermuda](https://github.com/agittins/bermuda) (HACS) and Bluetooth receivers assigned to areas: ESPHome `bluetooth_proxy` boards, Shelly Gen2+ devices with Bluetooth gateway, or the HA host's adapter. Roughly one receiver per room gives a stable result.
+
+**Android** – the Companion app sends an iBeacon:
+
+1. Companion app → *Settings → Companion app → Manage sensors → BLE Transmitter*: enable the sensor and switch **Transmit** on. It must be enabled on the phone itself; a remote command does nothing while it is off.
+2. Set *Transmit power* to **High** (or Medium) and *Advertise mode* to **Balanced**. Ultra Low / Low Power is often too weak for room detection. Later changes also work remotely with the `command_ble_transmitter` notification command.
+3. Android settings → Apps → Home Assistant → Battery: **Unrestricted**, otherwise the system may stop the transmitter in the background.
+4. HA → *Settings → Devices & services → Bermuda → Configure → Select devices*: pick the beacon (its `UUID_major_minor` is shown as an attribute of the BLE Transmitter sensor).
+5. Bermuda creates an *Area* sensor for the phone – put it into `follow`.
+
+**iPhone** – the iOS Companion app cannot transmit a beacon in the background, so the phone is recognised by its own Bluetooth signal through its IRK (identity resolving key):
+
+1. Get the IRK. With a Mac on the same Apple ID: *Keychain Access* → search `Bluetooth` → open the record whose `Public` address matches the iPhone's Bluetooth address (*Settings → General → About*) → *Show password* → the base64 value under **Remote IRK**. Without a Mac: an ESP32 IRK capture firmware (e.g. ESPHome-based [irk-capture](https://github.com/DerekSeaman/irk-capture)) that you pair the iPhone with.
+2. HA → *Add integration* → **Private BLE Device** → paste the IRK. Keep the iPhone nearby with Bluetooth on – HA checks that it can see it.
+3. Bermuda → *Configure → Select devices*: pick the new private device; its *Area* sensor goes into `follow`.
+
+The same works for an Apple Watch or an iPad. Each person needs their own sensor in `follow`; on a shared or wall device use the ring's long-press menu to choose which beacon to follow (or none).
+
 ## Visual editor
 
 Add the card from the dashboard editor (**Add card → HC Dial Card**) or open an existing one with **Edit**. The editor writes the same YAML as above, so you can switch to the code editor at any time.
