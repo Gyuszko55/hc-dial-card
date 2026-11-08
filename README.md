@@ -1,5 +1,7 @@
 # HC Dial Card
 
+**English** · [Magyar](README.hu.md)
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
 [![Validate](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml/badge.svg)](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml)
 
@@ -88,6 +90,42 @@ rooms:
 ```
 
 Room names are matched case- and accent-insensitively against the Home Assistant area name or area id.
+
+## Visual editor
+
+Add the card from the dashboard editor (**Add card → HC Dial Card**) or open an existing one with **Edit**. The editor writes the same YAML as above, so you can switch to the code editor at any time.
+
+| Field | What to enter |
+|---|---|
+| Thermostat | the climate entity shown by default (required) |
+| Label | up to 6 characters before the temperature; `area` = the thermostat's area, `auto` = the room you are in, empty = no label |
+| Step | target step; leave empty to use the entity's own step |
+| Weather / Outdoor sensor / Humidity sensor | the small top line |
+| Actual heating sensor | a binary sensor that is `on` while the burner or compressor really runs (flame / snowflake icon) |
+| Window/door sensors | one or more binary sensors; an open one shows the window icon |
+| Tap action | `auto`, `more-info`, `cycle` or `none` |
+| SET timeout / Switch back | seconds before SET mode closes without saving / before a manually chosen thermostat returns to the room's one |
+
+**Room following (optional)** is a collapsed section at the bottom:
+
+| Field | What to enter |
+|---|---|
+| Follow | one room sensor (`sensor.phone_area`) or a map `{user name or id: sensor}` – YAML |
+| Follow only in the mobile app | on = wall tablets and desktop browsers keep the default thermostat |
+| Room → thermostat | `{room: climate entity}`; rooms not listed use the default thermostat – YAML |
+| Value → room mapping | only if the sensor's values differ from your room names, e.g. `{kitchen_beacon: Kitchen}` – YAML |
+| Area abbreviations | 6-character labels for long area names, e.g. `{Living Room: LIVING}` – YAML |
+| Extra beacons for the device menu | sensors offered in the ring's long-press menu besides the Bermuda ones found automatically |
+| Away hold | seconds without a room before the main thermostat is shown |
+| HC decision sensor | only with the HC Thermostat integration |
+
+Turning room following on in three steps:
+
+1. In **Follow** enter each user's room sensor, e.g. `{Anna: sensor.anna_phone_area}`.
+2. In **Room → thermostat** list the rooms that have their own thermostat, e.g. `{Terrace: climate.terrace_ac}`.
+3. Optionally switch on **Follow only in the mobile app** and set **Label** to `area`.
+
+Fields marked YAML are small objects: type them as `{key: value}` or as one `key: value` per line. Options not in the editor (`step_angle`, `away_states`) can be added in the code editor.
 
 ## Gestures
 

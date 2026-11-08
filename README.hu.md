@@ -1,0 +1,173 @@
+# HC Dial Card
+
+[English](README.md) · **Magyar**
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![Validate](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml/badge.svg)](https://github.com/Gyuszko55/hc-dial-card/actions/workflows/validate.yml)
+
+Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climate` entitással** működik, egy célértékkel vagy fűtés/hűtés tartománnyal. Ha kéred, **követi, melyik helyiségben van a telefonod**, és mindig annak a helyiségnek a termosztátját mutatja.
+
+![HC Dial Card – nézet, a hűtési cél állítása, kikapcsolás](images/overview.png)
+
+## Tudnivalók
+
+- **Biztonságos állítás.** Tartsd nyomva a kijelzőt: SET módba lép. Forgasd a recés gyűrűt (vagy használd az egérgörgőt, a nyilakat), majd újabb hosszú nyomással rögzítsd. Forgatás közben semmit nem küld; 15 másodperc érintés nélkül mentés nélkül kilép a SET módból.
+- **Bármely climate entitás.** Egy cél (`temperature`) vagy tartomány (`target_temp_low` / `target_temp_high`): SET módban rövid koppintás vált a fűtési és a hűtési cél között. A kártya a `supported_features` alapján csak azt kínálja, amit a termosztát tud.
+- **Be / ki.** SET módban bekapcsoló gomb, ugyanazzal a hosszú nyomással rögzül. Ahol támogatott, `climate.turn_on` / `climate.turn_off` hívással dolgozik, így a termosztát a saját korábbi módjába tér vissza.
+- **Minden egy pillantásra.** Benti hőfok, cél, időjárás, kinti hőfok, páratartalom, üzemmód, mit csinál éppen (fűt, hűt, előfűt, leolvaszt, szárít, ventilál), preset ikon (takarék = levél, alvás = ágy …), nyitott ablak, elérhetőség.
+- **Helyiségkövetés (opcionális).** Helyiség-szenzorral (Bermuda, ESPresense, Wi-Fi BSSID …) arra a termosztátra vált, amelyik helyiségben vagy. Ha egy helyiségben több termosztát van (pl. TRV és klíma), a bekapcsolt jelenik meg.
+- **Készülékenkénti választás.** A külső gyűrű hosszú nyomására kiválaszthatod, melyik jeladót kövesse *ez* a készülék (vagy egyiket se). A választást az adott készülék böngészője tárolja.
+- **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul és németül.
+- **Grafikus szerkesztő**, billentyűzetes kezelés, felolvasható feliratok.
+
+## Telepítés
+
+### HACS (egyedi tároló)
+
+1. HACS → ⋮ → *Custom repositories* → `https://github.com/Gyuszko55/hc-dial-card`, típus: **Dashboard**.
+2. Telepítsd a **HC Dial Card**-ot, és töltsd újra a böngészőt.
+
+### Kézzel
+
+Másold a `hc-dial-card.js` fájlt a `config/www/` mappába, és vedd fel vezérlőpult-erőforrásnak:
+
+```yaml
+url: /local/hc-dial-card.js
+type: module
+```
+
+## Használat
+
+### Legegyszerűbb
+
+```yaml
+type: custom:hc-dial-card
+entity: climate.nappali
+```
+
+### Kiegészítőkkel
+
+```yaml
+type: custom:hc-dial-card
+entity: climate.nappali
+label: area            # a termosztát területének neve (max 6 karakter); vagy bármilyen szöveg, pl. "SZOBA"
+weather: weather.otthon
+outdoor: sensor.kinti_homerseklet
+humidity: sensor.nappali_paratartalom
+heating: binary_sensor.kazan_eg          # opcionális: a valódi égés jelzője a lánghoz
+window: [binary_sensor.nappali_ablak]
+```
+
+### Helyiségkövetés Bermudával
+
+```yaml
+type: custom:hc-dial-card
+entity: climate.haz                      # fő termosztát: minden más helyiségben és távollétben ez látszik
+label: area
+follow_app_only: true                    # csak a Companion appban kövessen
+follow:
+  Anna: sensor.anna_telefon_helyiseg     # HA felhasználónév (vagy azonosító) → helyiség-szenzor
+  Péter: sensor.peter_telefon_helyiseg
+rooms:
+  Terasz: climate.terasz_klima
+  Hálószoba:                             # több termosztát: a bekapcsolt látszik
+    - entity: climate.haloszoba_trv
+      trv: true                          # a TRV akkor számít bekapcsoltnak, ha a fő termosztát be van kapcsolva
+    - climate.haloszoba_klima
+```
+
+### ESPresense vagy Wi-Fi
+
+Bármilyen értéket helyiséghez rendelhetsz a `room_map`-pel:
+
+```yaml
+follow: sensor.anna_telefon_espresense   # állapota: nappali
+room_map:
+  nappali: Nappali
+  "aa:bb:cc:dd:ee:ff": Terasz            # Wi-Fi BSSID a Companion appból
+rooms:
+  Terasz: climate.terasz_klima
+```
+
+A helyiségneveket a HA terület nevével vagy azonosítójával veti össze, kis- és nagybetűtől, ékezettől függetlenül.
+
+## Grafikus szerkesztő
+
+A kártyát a vezérlőpult szerkesztőjében veheted fel (**Kártya hozzáadása → HC Dial Card**), vagy egy meglévőt a **Szerkesztés** gombbal nyithatsz meg. A szerkesztő ugyanazt a YAML-t írja, mint fent, így bármikor átválthatsz a kódszerkesztőre.
+
+| Mező | Mit írj be |
+|---|---|
+| Termosztát | az alapból mutatott climate entitás (kötelező) |
+| Felirat | legfeljebb 6 karakter a hőfok előtt; `area` = a termosztát területe, `auto` = a helyiség, ahol vagy, üres = nincs felirat |
+| Lépésköz | a cél lépése; üresen az entitás saját lépése |
+| Időjárás / Kinti hőmérő / Páratartalom-szenzor | a kis felső sor |
+| Tényleges fűtés jelzője | bináris szenzor, amely akkor `on`, amikor a kazán vagy a kompresszor valóban megy (láng / hópehely ikon) |
+| Ablak/ajtó érzékelők | egy vagy több bináris szenzor; ha valamelyik nyitva, megjelenik az ablak ikon |
+| Koppintás | `auto`, `more-info`, `cycle` vagy `none` |
+| SET időtúllépés / Visszaváltás | hány másodperc múlva lép ki a SET mód mentés nélkül / tér vissza a kézzel választott termosztát a helyiség szerintire |
+
+Alul a lenyitható **Helykövetés (opcionális)** rész:
+
+| Mező | Mit írj be |
+|---|---|
+| Követés | egy helyiség-szenzor (`sensor.telefon_helyiseg`) vagy `{felhasználónév vagy azonosító: szenzor}` – YAML |
+| Csak a mobil appban kövessen | be = a fali tablet és a gépi böngésző az alap termosztátot mutatja |
+| Helyiség → termosztát | `{helyiség: climate entitás}`; ahol nincs felsorolva, ott az alap termosztát – YAML |
+| Érték → helyiség átváltás | csak ha a szenzor értékei nem a helyiségneveid, pl. `{konyha_jelado: Konyha}` – YAML |
+| Terület-rövidítések | 6 karakteres felirat hosszú területnevekhez, pl. `{Fürdőszoba: FÜRDŐ}` – YAML |
+| További jeladók a készülék-menübe | szenzorok a gyűrű hosszú nyomására nyíló menübe; a Bermuda-szenzorokat magától is felkínálja |
+| Távollét kivárása | hány másodperc helyiség nélkül, mielőtt a fő termosztát jelenik meg |
+| HC döntés-szenzor | csak a HC Thermostat integrációval |
+
+Helyiségkövetés bekapcsolása három lépésben:
+
+1. A **Követés** mezőbe írd be minden felhasználó helyiség-szenzorát, pl. `{Anna: sensor.anna_telefon_helyiseg}`.
+2. A **Helyiség → termosztát** mezőbe sorold fel a saját termosztáttal rendelkező helyiségeket, pl. `{Terasz: climate.terasz_klima}`.
+3. Ha kell, kapcsold be a **Csak a mobil appban kövessen** kapcsolót, és a **Felirat** legyen `area`.
+
+A „YAML” jelű mezők kis objektumok: `{kulcs: érték}` formában vagy soronként `kulcs: érték`. Ami nincs az űrlapon (`step_angle`, `away_states`), a kódszerkesztőben adható meg.
+
+## Mozdulatok
+
+| Hol | Mozdulat | Hatás |
+|---|---|---|
+| Kijelző | hosszú nyomás | SET mód / rögzítés |
+| Kijelző | rövid koppintás | következő termosztát (ha több van) vagy részletek (ha egy) – lásd `tap_action` |
+| Gyűrű (SET) | körbe húzás | a cél állítása |
+| Kijelző (SET, tartomány) | rövid koppintás | váltás a fűtési / hűtési cél között |
+| Bekapcsoló gomb (SET) | koppintás | be / ki |
+| Gyűrű (nézet) | hosszú nyomás | készülék-menü: melyik jeladót kövesse ez a készülék |
+
+Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szóköz = fűtési/hűtési cél, P = be/ki, M = készülék-menü.
+
+## Beállítások
+
+| Beállítás | Alapérték | Leírás |
+|---|---|---|
+| `entity` | – | climate entitás (kötelező) |
+| `label` | – | felirat a hőfok előtt (max 6 karakter); `area` = a termosztát területe; `auto` = a helyiség, ahol vagy |
+| `step` | az entitás lépése, különben 0,5 (°F: 1) | a cél lépésköze |
+| `weather`, `outdoor`, `humidity` | – | felső sor; páratartalom híján az entitás `current_humidity` értéke |
+| `heating` | – | bináris szenzor a valódi égéshez / kompresszorhoz |
+| `window` | az entitás `window_open`/`door_open` | bináris szenzor(ok) nyitott ablakhoz |
+| `decision` | – | HC Thermostat döntés-szenzor (igény-sávok, ablak) |
+| `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
+| `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
+| `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
+| `follow` | – | helyiség-szenzor, vagy `{felhasználónév vagy azonosító: szenzor}` |
+| `follow_app_only` | false | csak a Companion appban kövessen |
+| `follow_choices` | – | további szenzorok a készülék-menübe (a Bermuda-szenzorokat magától megtalálja) |
+| `rooms` | – | `{helyiség: entitás}` vagy `{helyiség: {entity, label, step, heating, humidity, window}}` vagy lista |
+| `room_map` | – | `{szenzorérték: helyiség}` |
+| `area_labels` | – | rövid feliratok, pl. `{Fürdőszoba: FÜRDŐ}` |
+| `away_states` | `unknown, unavailable, not_home, away, none` | „nincs helyiség” jelentésű értékek |
+| `away_hold` | 60 | ennyi másodperc helyiség nélkül, mielőtt a fő termosztát jelenik meg |
+| `switch_back` | 10 | ennyi másodperc után tér vissza a kézzel választott termosztát a helyiség szerintire |
+
+## A HC Thermostat része
+
+A kártya a HC Thermostat integrációhoz készült (fűtésfelügyelet árnyék móddal), de nélküle is működik.
+
+## Licenc
+
+MIT
