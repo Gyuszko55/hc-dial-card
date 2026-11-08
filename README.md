@@ -17,7 +17,17 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 - **Status at a glance.** Room temperature, target, weather, outdoor temperature, humidity, HVAC mode, current action (heating, cooling, preheating, defrosting, drying, fan), preset icon (eco = leaf, sleep = bed …), open window, availability.
 - **Room following (optional).** With a room-presence sensor (Bermuda, ESPresense, Wi-Fi BSSID …) the card switches to the thermostat of the room you are in. Several thermostats in one room (e.g. a TRV and an air conditioner): the one that is switched on wins.
 - **Preset menu.** Tap the preset icon to choose a preset (comfort, eco, away …). With HC Thermostat each line also tells how long the preset lasts ("until 22:00", "until someone is home").
-- **Control type.** Under the clock the card shows what regulates: TPI, PID, EXT (an external thermostat) – from HC Thermostat, or recognised from Smart Thermostat, Versatile Thermostat and Better Thermostat; "SHADOW" when HC Thermostat only calculates.
+- **Control type.** At the top left the card shows what regulates; the preset icon sits in front of the temperature.
+
+  | Thermostat | Shown |
+  |---|---|
+  | HC Thermostat | TPI, PID, EXT (external thermostat) |
+  | Generic thermostat (on/off with hysteresis) | HIST |
+  | Smart Thermostat | PID, or HIST when its PID is off |
+  | SAT (Smart Autotune Thermostat) | SAT·PWM (on/off boiler), SAT·OT (modulating via OpenTherm) |
+  | Better Thermostat | BT, BT·PID, BT·MPC (by its calibration) |
+  | Versatile Thermostat | TPI, AUTO-TPI (learning), VT·REG (over a climate with self-regulation), VT |
+  | OpenTherm Gateway, ebusd | OT, eBUS |
 - **Per-device choice.** Long-press the outer ring to choose which beacon *this* device follows (or none). Stored in the browser of that device.
 - **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian and German.
 - **Visual editor**, keyboard control and screen-reader labels.
@@ -179,7 +189,7 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
 | `preset_menu` | true | tap on the preset icon opens the preset menu |
-| `control` | `auto` | control type under the clock: `auto`, your own text, or `false` |
+| `control` | `auto` | control type at the top left: `auto`, your own text, or `false` |
 | `follow` | – | room sensor, or `{user name or id: sensor}` |
 | `follow_app_only` | false | follow only inside the Companion app |
 | `follow_choices` | – | extra sensors for the device menu (Bermuda area sensors are found automatically) |

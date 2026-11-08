@@ -17,7 +17,17 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
 - **Minden egy pillantásra.** Benti hőfok, cél, időjárás, kinti hőfok, páratartalom, üzemmód, mit csinál éppen (fűt, hűt, előfűt, leolvaszt, szárít, ventilál), preset ikon (takarék = levél, alvás = ágy …), nyitott ablak, elérhetőség.
 - **Helyiségkövetés (opcionális).** Helyiség-szenzorral (Bermuda, ESPresense, Wi-Fi BSSID …) arra a termosztátra vált, amelyik helyiségben vagy. Ha egy helyiségben több termosztát van (pl. TRV és klíma), a bekapcsolt jelenik meg.
 - **Preset-menü.** A preset ikonra koppintva presetet választhatsz (komfort, eco, távol …). HC Thermostattal minden sor azt is mutatja, meddig tart („22:00-ig”, „hazaérkezésig”).
-- **Szabályozás fajtája.** Az óra alatt a kártya kiírja, mi szabályoz: TPI, PID, KÜLSŐ (külső termosztát) – a HC Thermostattól, vagy felismeri a Smart Thermostat, Versatile Thermostat és Better Thermostat jegyeiből; „ÁRNYÉK”, ha a HC Thermostat csak számol.
+- **Szabályozás fajtája.** A kártya bal felső részén látszik, mi szabályoz; a preset ikon a hőfok előtt van.
+
+  | Termosztát | Kijelzés |
+  |---|---|
+  | HC Thermostat | TPI, PID, KÜLSŐ (külső termosztát) |
+  | Generic thermostat (be/ki, hiszterézissel) | HIST |
+  | Smart Thermostat | PID, vagy HIST, ha a PID ki van kapcsolva |
+  | SAT (Smart Autotune Thermostat) | SAT·PWM (be/ki kazán), SAT·OT (moduláló, OpenThermen) |
+  | Better Thermostat | BT, BT·PID, BT·MPC (a kalibrációja szerint) |
+  | Versatile Thermostat | TPI, AUTO-TPI (tanuló), VT·REG (klíma fölött önszabályozással), VT |
+  | OpenTherm Gateway, ebusd | OT, eBUS |
 - **Készülékenkénti választás.** A külső gyűrű hosszú nyomására kiválaszthatod, melyik jeladót kövesse *ez* a készülék (vagy egyiket se). A választást az adott készülék böngészője tárolja.
 - **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul és németül.
 - **Grafikus szerkesztő**, billentyűzetes kezelés, felolvasható feliratok.
@@ -179,7 +189,7 @@ Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szók�
 | `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
 | `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
 | `preset_menu` | true | a preset ikonra koppintva preset-menü nyílik |
-| `control` | `auto` | a szabályozás fajtája az óra alatt: `auto`, saját szöveg vagy `false` |
+| `control` | `auto` | a szabályozás fajtája bal fent: `auto`, saját szöveg vagy `false` |
 | `follow` | – | helyiség-szenzor, vagy `{felhasználónév vagy azonosító: szenzor}` |
 | `follow_app_only` | false | csak a Companion appban kövessen |
 | `follow_choices` | – | további szenzorok a készülék-menübe (a Bermuda-szenzorokat magától megtalálja) |

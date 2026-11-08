@@ -29,7 +29,7 @@
  *     the one that is on (for a TRV the main thermostat – entity or on_by – decides); otherwise the first.
  *   room_map: {living_room: Living Room} (followed value → room, e.g. ESPresense room or Wi-Fi BSSID)
  *   preset_menu: true                    (tap on the preset icon → choose a preset; HC Thermostat also tells how long it lasts)
- *   control: auto                        (control type under the clock: TPI, PID, EXT …; own text, or false = none)
+ *   control: auto                        (control type at the top left: TPI, PID, HIST, BT, SAT·PWM …; own text, or false = none)
  *   follow_choices: [sensor.x]           (extra beacons for the device menu; Bermuda area sensors appear automatically)
  *   away_states: [unknown, not_home, …]  (values that mean "no room")
  *   follow_app_only: true                (follow only inside the Companion app; browsers show the main thermostat)
@@ -45,7 +45,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.9.1";
+const HC_DIAL_VERSION = "1.10.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -85,7 +85,7 @@ const STR = {
     hintRange: "Gyűrű: állít · koppintás: fűt/hűt · gomb: be/ki · hosszan: rögzít",
     hint: "Gyűrű: állít · gomb: be/ki · hosszan: rögzít",
     menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
-    presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ", shadowTag: "ÁRNYÉK",
+    presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ",
     presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
       home: "Otthon", boost: "Gyors felfűtés", activity: "Aktivitás", auto: "Auto", none: "Nincs" },
   },
@@ -96,7 +96,7 @@ const STR = {
     hintRange: "Ring: adjust · tap: heat/cool · button: on/off · long press: save",
     hint: "Ring: adjust · button: on/off · long press: save",
     menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
-    presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT", shadowTag: "SHADOW",
+    presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT",
     presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
       home: "Home", boost: "Boost", activity: "Activity", auto: "Auto", none: "None" },
   },
@@ -107,7 +107,7 @@ const STR = {
     hintRange: "Ring: einstellen · Tippen: Heizen/Kühlen · Taste: Ein/Aus · lange drücken: speichern",
     hint: "Ring: einstellen · Taste: Ein/Aus · lange drücken: speichern",
     menuTitle: "Dieses Gerät folgt:", menuDefault: "Standard", menuNone: "Nicht folgen", menuClose: "Schließen",
-    presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN", shadowTag: "SCHATTEN",
+    presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN",
     presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
       home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto", none: "Keine" },
   },
@@ -424,7 +424,9 @@ class HcDialCard extends HTMLElement {
         .wx { left:50%; top:14%; font-size:calc(4 * var(--cq)); color:#e8e8e8; gap:calc(1.6 * var(--cq)); }
         .wx ha-icon { color:#f2f2f2; }
         .wx .drop { color:#4fb3ff; --mdc-icon-size: calc(3.8 * var(--cq)); }
-        .eco { left:20%; top:27%; color:#bbb; }
+        .eco { left:20.5%; top:49%; transform: translate(-100%, -50%); color:#bbb; }
+        .ctl { left:20%; top:27%; font-size:calc(3.2 * var(--cq)); font-weight:600; letter-spacing:.08em; color:#8fb3c9; }
+        .ctl:empty { display:none; }
         .mode { left:41%; top:27%; }
         .mode .dot { width:calc(7.6 * var(--cq)); height:calc(7.6 * var(--cq)); border-radius:50%; display:flex; align-items:center; justify-content:center; background:#333; }
         .mode .dot ha-icon { --mdc-icon-size: calc(5 * var(--cq)); color:#fff; }
@@ -459,8 +461,6 @@ class HcDialCard extends HTMLElement {
         .dev.poff .big { color:#777 !important; }
         .dev.poff .line { background:#555 !important; animation:none; }
         .clock { left:50%; top:84%; font-size:calc(5 * var(--cq)); font-weight:500; letter-spacing:.04em; gap:calc(2.2 * var(--cq)); }
-        .clock #ctl { font-size:calc(3.2 * var(--cq)); color:#8fb3c9; letter-spacing:.08em; }
-        .clock #ctl:empty { display:none; }
         .eco.tap { cursor:pointer; }
         .hint { left:50%; top:83%; font-size:calc(2.9 * var(--cq)); color:#bbb; display:none; text-align:center; white-space:normal; width:56%; }
         /* SET mode */
@@ -474,7 +474,7 @@ class HcDialCard extends HTMLElement {
         .dev.cool.set .ring { box-shadow: 0 0 0 1px #000, 0 0 26px rgba(47,140,255,.6), 0 10px 30px rgba(0,0,0,.8); }
         .dev.cool .mark { background:#4fb3ff; box-shadow: 0 0 6px 2px rgba(47,140,255,.8); }
         .dev.cool .lock { color:#6fb6ff !important; }
-        .dev.set .wx, .dev.set .eco, .dev.set .mode, .dev.set .burn { display:none; }
+        .dev.set .wx, .dev.set .eco, .dev.set .ctl, .dev.set .mode, .dev.set .burn { display:none; }
         .dev.set .big { color:#ffb067; }
         .dev.set .line { background:#ff8a1f; animation: pulse 1.2s infinite; }
         @keyframes pulse { 50% { opacity:.35; } }
@@ -512,6 +512,7 @@ class HcDialCard extends HTMLElement {
           <div class="bezel"></div>
           <div class="disp" id="disp" tabindex="0" role="group">
             <div class="abs wx" id="wx"><ha-icon id="wxi" icon="mdi:weather-partly-cloudy"></ha-icon><span id="out"></span><ha-icon class="drop" icon="mdi:water"></ha-icon><span id="hum"></span></div>
+            <div class="abs ctl" id="ctl"></div>
             <div class="abs eco" id="eco"><ha-icon id="ecoi" icon="mdi:leaf"></ha-icon></div>
             <div class="abs mode"><div class="dot" id="mdot"><ha-icon id="mico" icon="mdi:fire"></ha-icon></div></div>
             <div class="abs burn" id="burn"><ha-icon icon="mdi:fire"></ha-icon><div class="bars"><i></i><i></i><i></i></div></div>
@@ -526,7 +527,7 @@ class HcDialCard extends HTMLElement {
             <div class="abs lock" id="lock"><ha-icon id="locki" icon="mdi:lock"></ha-icon></div>
             <div class="abs shadowm" id="shadowm"><ha-icon icon="mdi:eye-outline"></ha-icon></div>
             <div class="abs pwr" id="pwr"><ha-icon icon="mdi:power"></ha-icon><span id="pwrt"></span></div>
-            <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span><span id="ctl"></span></div>
+            <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span></div>
             <div class="abs hint" id="hint"></div>
             <div class="abs unav" id="unav"></div>
             <div class="abs toast" id="toast" aria-live="polite"><ha-icon id="toasti" icon="mdi:check-circle"></ha-icon><span id="toastt"></span></div>
@@ -814,19 +815,39 @@ class HcDialCard extends HTMLElement {
       this._render(true);
     }
   }
-  // what regulates: HC Thermostat tells it (control_type); other integrations are recognised by their attributes
+  // what regulates – HC Thermostat tells it (control_type); other integrations are recognised by their
+  // platform (entity registry) and attributes. HIST = on/off with hysteresis.
   _controlLabel(st) {
     const c = this._cfg.control;
     if (c === false || c === "false" || c === "none") return "";
+    if (typeof c === "string" && c !== "auto" && c !== "") return c;
     const a = st.attributes;
-    let text = "";
-    if (typeof c === "string" && c !== "auto" && c !== "") text = c;
-    else if (a.control_type) text = { tpi: "TPI", pid: "PID", external: this._t("ext"), onoff: "BE/KI" }[a.control_type] || String(a.control_type).toUpperCase();
-    else if (a.pid_mode !== undefined || a.kp !== undefined) text = "PID";
-    else if (a.proportional_function) text = String(a.proportional_function).toUpperCase();
-    else if (a.call_for_heat !== undefined && a.calibration_type !== undefined) text = this._t("ext");
-    if (text && a.hc_mode === "shadow") text += ` · ${this._t("shadowTag")}`;
-    return text;
+    const platform = this._hass?.entities?.[st.entity_id]?.platform;
+    const has = (k) => a[k] !== undefined && a[k] !== null;
+    if (a.control_type) {
+      return { tpi: "TPI", pid: "PID", external: this._t("ext"), hysteresis: "HIST", onoff: "HIST" }[a.control_type] || String(a.control_type).toUpperCase();
+    }
+    if (platform === "generic_thermostat") return "HIST";
+    if (platform === "smart_thermostat" || has("pid_mode")) return a.pid_mode === "off" ? "HIST" : "PID";
+    if (platform === "sat" || (has("heating_curve") && has("pulse_width_modulation_enabled"))) {
+      return a.pulse_width_modulation_enabled ? "SAT·PWM" : "SAT·OT";
+    }
+    if (platform === "better_thermostat" || (has("call_for_heat") && has("heating_power"))) {
+      return has("pid_kp") ? "BT·PID" : Object.keys(a).some((k) => k.startsWith("mpc_v2_")) ? "BT·MPC" : "BT";
+    }
+    if (platform === "versatile_thermostat" || has("is_over_switch") || has("is_over_valve") || has("is_over_climate")) {
+      if (a.is_over_climate) {
+        const reg = a.vtherm_over_climate?.regulation?.auto_regulation_mode;
+        return reg && reg !== "auto_regulation_none" ? "VT·REG" : "VT";
+      }
+      const spec = a.specific_states || {};
+      if (spec.auto_tpi_state === "on") return "AUTO-TPI";
+      const fn = (a.vtherm_over_switch || a.vtherm_over_valve || {}).function;
+      return fn ? String(fn).toUpperCase() : "TPI";
+    }
+    if (platform === "opentherm_gw") return "OT";
+    if (platform === "ebusd") return "eBUS";
+    return "";
   }
   _closeMenu() {
     this._$("dev").classList.remove("menuopen");
