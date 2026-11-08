@@ -1,0 +1,6 @@
+{
+  "name": "HC Dial Card",
+  "filename": "hc-dial-card.js",
+  "render_readme": true,
+  "homeassistant": "2024.8.0"
+}
