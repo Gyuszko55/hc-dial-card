@@ -106,6 +106,26 @@ const STR = {
     presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
       home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Zeitplan" },
   },
+  sr: {
+    days: ["НЕД", "ПОН", "УТО", "СРЕ", "ЧЕТ", "ПЕТ", "СУБ"], target: "ЦИЉ", now: "сада", was: "пре", on: "УКЉ", off: "ИСКЉ",
+    heat: "ГРЕЈАЊЕ", cool: "ХЛАЂЕЊЕ", unavailable: "Није dostupno", saved: "Сачувано", unchanged: "Непромењено",
+    error: "Грешка – није сачувано", shadow: "Режим сенке: не пребацује",
+    hintRange: "Прстен: подешавање · Додир: Грејање/Хлађење · Тастер: Укљ/Искљ · дуги притисак: сачувај",
+    hint: "Прстен: подешавање · Тастер: Укљ/Искљ · дуги притисак: сачувај",
+    menuTitle: "Овај уређај прати:", menuDefault: "Подразумевано", menuNone: "Не прати", menuClose: "Затвори",
+    presets: { eco: "Еко", away: "Одсутан", vacation: "Одмор", sleep: "Спавање", night: "Ноћ", comfort: "Комфор",
+      home: "Кућа", boost: "Брзо грејање", activity: "Активност", auto: "Распоред" },
+  },
+  "sr-latn": {
+    days: ["NED", "PON", "UTO", "SRE", "ČET", "PET", "SUB"], target: "CILJ", now: "sada", was: "pre", on: "UKLJ", off: "ISKLJ",
+    heat: "GREJANJE", cool: "HLAĐENJE", unavailable: "Nije dostupno", saved: "Sačuvano", unchanged: "Nepromenjeno",
+    error: "Greška – nije sačuvano", shadow: "Režim senke: ne prebacuje",
+    hintRange: "Prsten: podešavanje · Dodir: Grejanje/Hlađenje · Taster: Uklj/Isklj · dugi pritisak: sačuvaj",
+    hint: "Prsten: podešavanje · Taster: Uklj/Isklj · dugi pritisak: sačuvaj",
+    menuTitle: "Ovaj uređaj prati:", menuDefault: "Podrazumevano", menuNone: "Ne prati", menuClose: "Zatvori",
+    presets: { eco: "Eko", away: "Odsutan", vacation: "Odmor", sleep: "Spavanje", night: "Noć", comfort: "Komfor",
+      home: "Kuća", boost: "Brzo grejanje", activity: "Aktivnost", auto: "Raspored" },
+  },
 };
 const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
 
@@ -345,11 +365,35 @@ class HcDialCard extends HTMLElement {
     return Number.isFinite(v) ? v : null;
   }
   _lang() {
-    const l = (this._hass?.locale?.language || this._hass?.language || "en").slice(0, 2).toLowerCase();
-    return STR[l] ? l : "en";
+    // Get full lowercase code (e.g., "sr-latn" or "sr") to protect script variations
+    const l = (this._hass?.locale?.language || this._hass?.language || "en").toLowerCase();
+    
+    // Match exact key if it exists
+    if (STR[l]) return l;
+    
+    // Fallback to 2-letter code if full code isn't in STR
+    const short = l.slice(0, 2);
+    if (STR[short]) return short;
+    
+    return "en";
   }
   _t(k) {
-    return STR[this._lang()][k] ?? STR.en[k];
+    const keys = k.split('.');
+    
+    // Traverse active language path
+    let translation = STR[this._lang()];
+    for (const key of keys) {
+      translation = translation?.[key];
+    }
+    if (translation !== undefined) return translation;
+    
+    // Fallback to English path
+    let fallback = STR.en;
+    for (const key of keys) {
+      fallback = fallback?.[key];
+    }
+    
+    return fallback ?? k;
   }
   // number format from the HA locale settings
   _numLocale() {
