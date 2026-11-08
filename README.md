@@ -16,6 +16,8 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 - **On / off.** A power button in SET mode; saved with the same long press. Uses `climate.turn_on` / `climate.turn_off` when supported, so the thermostat returns to its own previous mode.
 - **Status at a glance.** Room temperature, target, weather, outdoor temperature, humidity, HVAC mode, current action (heating, cooling, preheating, defrosting, drying, fan), preset icon (eco = leaf, sleep = bed …), open window, availability.
 - **Room following (optional).** With a room-presence sensor (Bermuda, ESPresense, Wi-Fi BSSID …) the card switches to the thermostat of the room you are in. Several thermostats in one room (e.g. a TRV and an air conditioner): the one that is switched on wins.
+- **Preset menu.** Tap the preset icon to choose a preset (comfort, eco, away …). With HC Thermostat each line also tells how long the preset lasts ("until 22:00", "until someone is home").
+- **Control type.** Under the clock the card shows what regulates: TPI, PID, EXT (an external thermostat) – from HC Thermostat, or recognised from Smart Thermostat, Versatile Thermostat and Better Thermostat; "SHADOW" when HC Thermostat only calculates.
 - **Per-device choice.** Long-press the outer ring to choose which beacon *this* device follows (or none). Stored in the browser of that device.
 - **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian and German.
 - **Visual editor**, keyboard control and screen-reader labels.
@@ -124,6 +126,7 @@ Add the card from the dashboard editor (**Add card → HC Dial Card**) or open a
 | Actual heating sensor | a binary sensor that is `on` while the burner or compressor really runs (flame / snowflake icon) |
 | Window/door sensors | one or more binary sensors; an open one shows the window icon |
 | Tap action | `auto`, `more-info`, `cycle` or `none` |
+| Control type label / Preset menu | `auto`, own text or `false` / on-off |
 | SET timeout / Switch back | seconds before SET mode closes without saving / before a manually chosen thermostat returns to the room's one |
 
 **Room following (optional)** is a collapsed section at the bottom:
@@ -157,8 +160,9 @@ Fields marked YAML are small objects: type them as `{key: value}` or as one `key
 | Display (SET, range) | short tap | switch heating / cooling target |
 | Power button (SET) | tap | on / off |
 | Ring (view) | long press | device menu: which beacon this device follows |
+| Preset icon (view) | tap | preset menu |
 
-Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooling target, P = on/off, M = device menu.
+Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooling target, P = on/off, M = device menu, S = preset menu.
 
 ## Options
 
@@ -174,6 +178,8 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
+| `preset_menu` | true | tap on the preset icon opens the preset menu |
+| `control` | `auto` | control type under the clock: `auto`, your own text, or `false` |
 | `follow` | – | room sensor, or `{user name or id: sensor}` |
 | `follow_app_only` | false | follow only inside the Companion app |
 | `follow_choices` | – | extra sensors for the device menu (Bermuda area sensors are found automatically) |

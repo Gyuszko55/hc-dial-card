@@ -28,6 +28,8 @@
  *     Several thermostats in one room: a list, e.g. [{entity: climate.bedroom_trv, trv: true}, climate.bedroom_ac] →
  *     the one that is on (for a TRV the main thermostat – entity or on_by – decides); otherwise the first.
  *   room_map: {living_room: Living Room} (followed value → room, e.g. ESPresense room or Wi-Fi BSSID)
+ *   preset_menu: true                    (tap on the preset icon → choose a preset; HC Thermostat also tells how long it lasts)
+ *   control: auto                        (control type under the clock: TPI, PID, EXT …; own text, or false = none)
  *   follow_choices: [sensor.x]           (extra beacons for the device menu; Bermuda area sensors appear automatically)
  *   away_states: [unknown, not_home, …]  (values that mean "no room")
  *   follow_app_only: true                (follow only inside the Companion app; browsers show the main thermostat)
@@ -43,7 +45,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.8.1";
+const HC_DIAL_VERSION = "1.9.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -56,7 +58,7 @@ const ACTION_ICON = {
 };
 const pOffAria = (c) => (c._pOn === false ? c._t("off") : `${c._fmt(c._pending)} ${c._unit()}`);
 // ClimateEntityFeature
-const F_TEMP = 1, F_RANGE = 2, F_OFF = 128, F_ON = 256;
+const F_TEMP = 1, F_RANGE = 2, F_PRESET = 16, F_OFF = 128, F_ON = 256;
 // accent-, case- and separator-insensitive comparison
 const norm = (v) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[\s_-]+/g, "_");
 const WEATHER_ICON = {
@@ -83,8 +85,9 @@ const STR = {
     hintRange: "Gyűrű: állít · koppintás: fűt/hűt · gomb: be/ki · hosszan: rögzít",
     hint: "Gyűrű: állít · gomb: be/ki · hosszan: rögzít",
     menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
-    presets: { eco: "Takarékos", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
-      home: "Otthon", boost: "Gyorsítás", activity: "Aktivitás", auto: "Időprogram" },
+    presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ", shadowTag: "ÁRNYÉK",
+    presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
+      home: "Otthon", boost: "Gyors felfűtés", activity: "Aktivitás", auto: "Auto" },
   },
   en: {
     days: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"], target: "SET", now: "now", was: "was", on: "ON", off: "OFF",
@@ -93,8 +96,9 @@ const STR = {
     hintRange: "Ring: adjust · tap: heat/cool · button: on/off · long press: save",
     hint: "Ring: adjust · button: on/off · long press: save",
     menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
+    presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT", shadowTag: "SHADOW",
     presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
-      home: "Home", boost: "Boost", activity: "Activity", auto: "Schedule" },
+      home: "Home", boost: "Boost", activity: "Activity", auto: "Auto" },
   },
   de: {
     days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
@@ -103,8 +107,9 @@ const STR = {
     hintRange: "Ring: einstellen · Tippen: Heizen/Kühlen · Taste: Ein/Aus · lange drücken: speichern",
     hint: "Ring: einstellen · Taste: Ein/Aus · lange drücken: speichern",
     menuTitle: "Dieses Gerät folgt:", menuDefault: "Standard", menuNone: "Nicht folgen", menuClose: "Schließen",
+    presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN", shadowTag: "SCHATTEN",
     presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
-      home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Zeitplan" },
+      home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto" },
   },
 };
 const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
@@ -112,7 +117,7 @@ const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
 class HcDialCard extends HTMLElement {
   setConfig(config) {
     if (!config || !config.entity) throw new Error("entity is required (climate.*)");
-    this._base = { timeout: 15, step_angle: 18, ...config };
+    this._base = { timeout: 15, step_angle: 18, preset_menu: true, control: "auto", ...config };
     this._cand = null; // null = main thermostat
     this._sig = "";
     this._cfg = this._merge(null);
@@ -454,6 +459,9 @@ class HcDialCard extends HTMLElement {
         .dev.poff .big { color:#777 !important; }
         .dev.poff .line { background:#555 !important; animation:none; }
         .clock { left:50%; top:84%; font-size:calc(5 * var(--cq)); font-weight:500; letter-spacing:.04em; gap:calc(2.2 * var(--cq)); }
+        .clock #ctl { font-size:calc(3.2 * var(--cq)); color:#8fb3c9; letter-spacing:.08em; }
+        .clock #ctl:empty { display:none; }
+        .eco.tap { cursor:pointer; }
         .hint { left:50%; top:83%; font-size:calc(2.9 * var(--cq)); color:#bbb; display:none; text-align:center; white-space:normal; width:56%; }
         /* SET mode */
         .dev.set .lbl, .dev.set .sub, .dev.set .clock { display:none; }
@@ -489,6 +497,12 @@ class HcDialCard extends HTMLElement {
                     padding:calc(1.2 * var(--cq)) calc(2.4 * var(--cq)); width:100%; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .menu .mi.sel { border-color:#ff9a3c; color:#ffb067; }
         .menu .mi.close { background:transparent; border-color:transparent; color:#999; font-size:calc(3 * var(--cq)); }
+        .menu .mi { flex-shrink:0; }
+        .dev.menuopen .menu.pm { display:grid; grid-template-columns:1fr 1fr; align-content:center; gap:calc(1 * var(--cq)); padding:15% 13%; }
+        .menu.pm .mt, .menu.pm .mi.close { grid-column:1 / -1; justify-self:center; }
+        .menu.pm .mi { font-size:calc(3 * var(--cq)); padding:calc(.9 * var(--cq)) calc(1.2 * var(--cq)); line-height:1.15; }
+        .menu.pm .mi small { display:block; font-size:calc(2.3 * var(--cq)); color:#9aa; margin-top:calc(.2 * var(--cq)); }
+        .menu.pm .mi.sel small { color:#d9a36a; }
         .unav { left:50%; top:50%; font-size:calc(4 * var(--cq)); color:#e53935; display:none; }
         .dev.unavail .unav { display:flex; }
       </style>
@@ -512,7 +526,7 @@ class HcDialCard extends HTMLElement {
             <div class="abs lock" id="lock"><ha-icon id="locki" icon="mdi:lock"></ha-icon></div>
             <div class="abs shadowm" id="shadowm"><ha-icon icon="mdi:eye-outline"></ha-icon></div>
             <div class="abs pwr" id="pwr"><ha-icon icon="mdi:power"></ha-icon><span id="pwrt"></span></div>
-            <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span></div>
+            <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span><span id="ctl"></span></div>
             <div class="abs hint" id="hint"></div>
             <div class="abs unav" id="unav"></div>
             <div class="abs toast" id="toast" aria-live="polite"><ha-icon id="toasti" icon="mdi:check-circle"></ha-icon><span id="toastt"></span></div>
@@ -538,7 +552,10 @@ class HcDialCard extends HTMLElement {
       e.stopPropagation();
       const bt = e.target.closest("button");
       if (!bt) return;
-      if (!bt.dataset.close) this._setDevChoice(bt.dataset.v === "" ? null : bt.dataset.v);
+      if (!bt.dataset.close) {
+        if (this._menuKind === "preset") this._setPreset(bt.dataset.v);
+        else this._setDevChoice(bt.dataset.v === "" ? null : bt.dataset.v);
+      }
       this._closeMenu();
     });
   }
@@ -566,6 +583,7 @@ class HcDialCard extends HTMLElement {
       if (this._mode === "saved" || this._mode === "cancel" || this._mode === "menu") return;
       if (this._mode === "set" && e.composedPath().some((el) => el.id === "pwr")) { this._togglePower(); return; }
       clearTimeout(this._backT);
+      this._onPreset = e.composedPath().some((el) => el.id === "eco");
       t0 = performance.now(); x0 = e.clientX; y0 = e.clientY; armed = true;
       dev.classList.add("pressing");
       raf = requestAnimationFrame(anim);
@@ -578,6 +596,7 @@ class HcDialCard extends HTMLElement {
       const tap = armed && performance.now() - t0 < 350;
       stop();
       if (tap && this._mode === "set" && this._vals && Object.keys(this._vals).length > 1) this._toggleField();
+      else if (tap && this._mode === "view" && this._onPreset && this._presetMenuOk()) this._openPresetMenu();
       else if (tap && this._mode === "view") this._tap();
       else if (this._mode === "view") this._armBack();
     });
@@ -718,6 +737,7 @@ class HcDialCard extends HTMLElement {
         if (k === "Enter") { e.preventDefault(); this._onLong(); }
         else if (k === "ArrowRight" || k === "ArrowLeft") { e.preventDefault(); this._tap(); }
         else if (k === "m" || k === "M") { e.preventDefault(); this._openMenu(); }
+        else if ((k === "s" || k === "S") && this._presetMenuOk()) { e.preventDefault(); this._openPresetMenu(); }
         return;
       }
       if (this._mode !== "set") return;
@@ -739,9 +759,74 @@ class HcDialCard extends HTMLElement {
     m.innerHTML = `<div class="mt">${this._t("menuTitle")}</div>` +
       items.map(([v, n]) => `<button class="mi${(v ?? null) === (cur ?? null) ? " sel" : ""}" data-v="${v ?? ""}">${n.replace(/[<>&]/g, "")}</button>`).join("") +
       `<button class="mi close" data-close="1">${this._t("menuClose")}</button>`;
+    m.classList.remove("pm");
     this._mode = "menu";
+    this._menuKind = "device";
     this._vibrate(30);
     this._$("dev").classList.add("menuopen");
+  }
+  // preset menu: a tap on the preset icon; each line tells how long the preset lasts (HC Thermostat)
+  _presetMenuOk() {
+    const st = this._st(this._cfg.entity);
+    return this._cfg.preset_menu !== false && !!st && (this._sf(st) & F_PRESET) !== 0 &&
+      Array.isArray(st.attributes.preset_modes) && st.attributes.preset_modes.length > 1;
+  }
+  _presetEnd(v) {
+    if (v === undefined || v === null) return "";
+    if (v === "home") return this._t("endHome");
+    if (v === "once") return this._t("endOnce");
+    let at = null;
+    const dur = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(v);
+    if (dur) at = new Date(Date.now() + ((+dur[1] || 0) * 60 + (+dur[2] || 0)) * 60000);
+    else if (!isNaN(Date.parse(v))) at = new Date(v);
+    if (!at) return "";
+    const hm = `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+    const days = Math.round((new Date(at).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
+    return this._t("until").replace("{t}", days > 0 ? `${this._t("days")[at.getDay()]} ${hm}` : hm);
+  }
+  _openPresetMenu() {
+    if (this._mode !== "view") return;
+    const st = this._st(this._cfg.entity);
+    const a = st.attributes, ends = a.preset_end_preview || {};
+    const name = (p) => this._t("presets")[p] || p;
+    const m = this._$("menu");
+    m.innerHTML = `<div class="mt">${this._t("presetTitle")}</div>` +
+      a.preset_modes.map((p) => {
+        const end = p === a.preset_mode ? "" : this._presetEnd(ends[p]);
+        const clean = (s) => String(s).replace(/[<>&]/g, "");
+        return `<button class="mi${p === a.preset_mode ? " sel" : ""}" data-v="${p}">${clean(name(p))}${end ? `<small>${clean(end)}</small>` : ""}</button>`;
+      }).join("") +
+      `<button class="mi close" data-close="1">${this._t("menuClose")}</button>`;
+    m.classList.add("pm");
+    this._mode = "menu";
+    this._menuKind = "preset";
+    this._vibrate(30);
+    this._$("dev").classList.add("menuopen");
+  }
+  async _setPreset(preset) {
+    try {
+      await this._hass.callService("climate", "set_preset_mode", { entity_id: this._cfg.entity, preset_mode: preset });
+    } catch (err) {
+      clearTimeout(this._toastT);
+      this._mode = "cancel";
+      this._$("toastt").textContent = this._t("error");
+      this._toastT = setTimeout(() => { this._mode = "view"; this._render(); }, 2000);
+      this._render(true);
+    }
+  }
+  // what regulates: HC Thermostat tells it (control_type); other integrations are recognised by their attributes
+  _controlLabel(st) {
+    const c = this._cfg.control;
+    if (c === false || c === "false" || c === "none") return "";
+    const a = st.attributes;
+    let text = "";
+    if (typeof c === "string" && c !== "auto" && c !== "") text = c;
+    else if (a.control_type) text = { tpi: "TPI", pid: "PID", external: this._t("ext"), onoff: "BE/KI" }[a.control_type] || String(a.control_type).toUpperCase();
+    else if (a.pid_mode !== undefined || a.kp !== undefined) text = "PID";
+    else if (a.proportional_function) text = String(a.proportional_function).toUpperCase();
+    else if (a.call_for_heat !== undefined && a.calibration_type !== undefined) text = this._t("ext");
+    if (text && a.hc_mode === "shadow") text += ` · ${this._t("shadowTag")}`;
+    return text;
   }
   _closeMenu() {
     this._$("dev").classList.remove("menuopen");
@@ -884,6 +969,8 @@ class HcDialCard extends HTMLElement {
       $("ecoi").setAttribute("icon", pIcon);
       pEl.title = this._t("presets")[pm] || pm;
     }
+    pEl.classList.toggle("tap", this._presetMenuOk());
+    $("ctl").textContent = this._controlLabel(st);
 
     // action / demand
     const dec = this._st(cfg.decision);
@@ -991,13 +1078,15 @@ const EDITOR_LABELS = {
     tap_action: "Koppintás", timeout: "SET időtúllépés (mp)", switch_back: "Visszaváltás (mp)", away_hold: "Távollét kivárása (mp)",
     follow_app_only: "Csak a mobil appban kövessen", follow: "Követés: felhasználó → helyiség-szenzor (YAML)",
     rooms: "Helyiség → termosztát (YAML)", room_map: "Érték → helyiség átváltás (YAML)", area_labels: "Terület-rövidítések (YAML)",
-    follow_choices: "További jeladók a készülék-menübe", follow_hint: "Helykövetés (opcionális)" },
+    follow_choices: "További jeladók a készülék-menübe", follow_hint: "Helykövetés (opcionális)",
+    control: "Szabályozás jelzése (auto, saját szöveg vagy false)", preset_menu: "Preset-menü a preset ikonon" },
   en: { entity: "Thermostat", label: "Label (max 6 chars; area = thermostat's area)", step: "Step", heating: "Actual heating sensor",
     weather: "Weather", outdoor: "Outdoor sensor", humidity: "Humidity sensor", window: "Window/door sensors", decision: "HC decision sensor",
     tap_action: "Tap action", timeout: "SET timeout (s)", switch_back: "Switch back (s)", away_hold: "Away hold (s)",
     follow_app_only: "Follow only in the mobile app", follow: "Follow: user → room sensor (YAML)",
     rooms: "Room → thermostat (YAML)", room_map: "Value → room mapping (YAML)", area_labels: "Area abbreviations (YAML)",
-    follow_choices: "Extra beacons for the device menu", follow_hint: "Room following (optional)" },
+    follow_choices: "Extra beacons for the device menu", follow_hint: "Room following (optional)",
+    control: "Control type label (auto, own text or false)", preset_menu: "Preset menu on the preset icon" },
 };
 class HcDialCardEditor extends HTMLElement {
   setConfig(config) {
@@ -1027,6 +1116,10 @@ class HcDialCardEditor extends HTMLElement {
       ] },
       { name: "window", selector: { entity: { domain: "binary_sensor", multiple: true } } },
       { name: "tap_action", selector: { select: { mode: "dropdown", options: ["auto", "more-info", "cycle", "none"] } } },
+      { type: "grid", name: "", schema: [
+        { name: "control", selector: { text: {} } },
+        { name: "preset_menu", selector: { boolean: {} } },
+      ] },
       { type: "grid", name: "", schema: [
         { name: "timeout", selector: { number: { min: 5, max: 120, mode: "box" } } },
         { name: "switch_back", selector: { number: { min: 3, max: 120, mode: "box" } } },

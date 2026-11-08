@@ -16,6 +16,8 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
 - **Be / ki.** SET módban bekapcsoló gomb, ugyanazzal a hosszú nyomással rögzül. Ahol támogatott, `climate.turn_on` / `climate.turn_off` hívással dolgozik, így a termosztát a saját korábbi módjába tér vissza.
 - **Minden egy pillantásra.** Benti hőfok, cél, időjárás, kinti hőfok, páratartalom, üzemmód, mit csinál éppen (fűt, hűt, előfűt, leolvaszt, szárít, ventilál), preset ikon (takarék = levél, alvás = ágy …), nyitott ablak, elérhetőség.
 - **Helyiségkövetés (opcionális).** Helyiség-szenzorral (Bermuda, ESPresense, Wi-Fi BSSID …) arra a termosztátra vált, amelyik helyiségben vagy. Ha egy helyiségben több termosztát van (pl. TRV és klíma), a bekapcsolt jelenik meg.
+- **Preset-menü.** A preset ikonra koppintva presetet választhatsz (komfort, eco, távol …). HC Thermostattal minden sor azt is mutatja, meddig tart („22:00-ig”, „hazaérkezésig”).
+- **Szabályozás fajtája.** Az óra alatt a kártya kiírja, mi szabályoz: TPI, PID, KÜLSŐ (külső termosztát) – a HC Thermostattól, vagy felismeri a Smart Thermostat, Versatile Thermostat és Better Thermostat jegyeiből; „ÁRNYÉK”, ha a HC Thermostat csak számol.
 - **Készülékenkénti választás.** A külső gyűrű hosszú nyomására kiválaszthatod, melyik jeladót kövesse *ez* a készülék (vagy egyiket se). A választást az adott készülék böngészője tárolja.
 - **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul és németül.
 - **Grafikus szerkesztő**, billentyűzetes kezelés, felolvasható feliratok.
@@ -124,6 +126,7 @@ A kártyát a vezérlőpult szerkesztőjében veheted fel (**Kártya hozzáadás
 | Tényleges fűtés jelzője | bináris szenzor, amely akkor `on`, amikor a kazán vagy a kompresszor valóban megy (láng / hópehely ikon) |
 | Ablak/ajtó érzékelők | egy vagy több bináris szenzor; ha valamelyik nyitva, megjelenik az ablak ikon |
 | Koppintás | `auto`, `more-info`, `cycle` vagy `none` |
+| Szabályozás jelzése / Preset-menü | `auto`, saját szöveg vagy `false` / be-ki |
 | SET időtúllépés / Visszaváltás | hány másodperc múlva lép ki a SET mód mentés nélkül / tér vissza a kézzel választott termosztát a helyiség szerintire |
 
 Alul a lenyitható **Helykövetés (opcionális)** rész:
@@ -157,8 +160,9 @@ A „YAML” jelű mezők kis objektumok: `{kulcs: érték}` formában vagy soro
 | Kijelző (SET, tartomány) | rövid koppintás | váltás a fűtési / hűtési cél között |
 | Bekapcsoló gomb (SET) | koppintás | be / ki |
 | Gyűrű (nézet) | hosszú nyomás | készülék-menü: melyik jeladót kövesse ez a készülék |
+| Preset ikon (nézet) | koppintás | preset-menü |
 
-Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szóköz = fűtési/hűtési cél, P = be/ki, M = készülék-menü.
+Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szóköz = fűtési/hűtési cél, P = be/ki, M = készülék-menü, S = preset-menü.
 
 ## Beállítások
 
@@ -174,6 +178,8 @@ Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szók�
 | `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
 | `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
 | `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
+| `preset_menu` | true | a preset ikonra koppintva preset-menü nyílik |
+| `control` | `auto` | a szabályozás fajtája az óra alatt: `auto`, saját szöveg vagy `false` |
 | `follow` | – | helyiség-szenzor, vagy `{felhasználónév vagy azonosító: szenzor}` |
 | `follow_app_only` | false | csak a Companion appban kövessen |
 | `follow_choices` | – | további szenzorok a készülék-menübe (a Bermuda-szenzorokat magától megtalálja) |
