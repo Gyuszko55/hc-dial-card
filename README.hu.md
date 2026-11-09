@@ -67,6 +67,10 @@ weather: weather.otthon
 outdoor: sensor.kinti_homerseklet
 humidity: sensor.nappali_paratartalom
 heating: binary_sensor.kazan_eg          # opcionális: a valódi égés jelzője a lánghoz
+heat_type: auto                          # opcionális: a fűtés ikonja – gas_boiler (piros felszálló hő), floor,
+                                         # radiator, heat_pump, air_conditioner (nap / hópehely), electric,
+                                         # stove, district, solar, flame; auto = a termosztát heat_type
+                                         # attribútuma (HC Thermostat), különben klíma, ha tud hűteni
 window: [binary_sensor.nappali_ablak]
 ```
 

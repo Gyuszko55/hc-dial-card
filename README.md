@@ -67,6 +67,10 @@ weather: weather.home
 outdoor: sensor.outdoor_temperature
 humidity: sensor.living_room_humidity
 heating: binary_sensor.boiler_burning   # optional: real burner state for the flame
+heat_type: auto                         # optional: icon of the heat – gas_boiler (rising red heat), floor,
+                                        # radiator, heat_pump, air_conditioner (sun / snowflake), electric,
+                                        # stove, district, solar, flame; auto = the thermostat's heat_type
+                                        # attribute (HC Thermostat), else air_conditioner if it can cool
 window: [binary_sensor.living_window]
 ```
 
