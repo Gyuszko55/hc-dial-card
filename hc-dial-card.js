@@ -50,6 +50,7 @@
  *   timeout: 15                          (s)
  *   step_angle: 18                       (ring degrees per step)
  *
+ * A tap outside the ring closes an open menu at once and brings back the room's (main) thermostat.
  * Device menu: long press on the outer ring in view mode – which beacon this device follows (browser storage).
  * Several thermostats (entity + all thermostats in rooms): a double tap on the display shows the next one.
  * Thermostat list (admins): tap the thermostat icon → the recognised climate entities; tap = select, long press =
@@ -406,11 +407,29 @@ class HcDialCard extends HTMLElement {
   }
 
   connectedCallback() {
+    // a tap outside the ring closes an open menu at once and brings back the room's (main) thermostat
+    if (!this._outside) {
+      this._outside = (e) => {
+        if (!this.shadowRoot) return;
+        const ring = this._$("ring"), disp = this._$("disp"), menu = this._$("menu");
+        if (e.composedPath().some((el) => el === ring || el === disp || el === menu)) return;
+        if (this._mode === "menu") this._closeMenu();
+        if (this._mode === "view" && this._override !== undefined && this._override !== false) {
+          clearTimeout(this._backT);
+          this._override = false;
+          this._sig = "\u0000";
+          this._follow();
+          this._render();
+        }
+      };
+    }
+    document.addEventListener("pointerdown", this._outside, true);
     this._clock = setInterval(() => this._renderClock(), 15000);
     this._renderClock();
   }
 
   disconnectedCallback() {
+    if (this._outside) document.removeEventListener("pointerdown", this._outside, true);
     clearInterval(this._clock);
     if (this._mode === "menu") { this._$("dev").classList.remove("menuopen"); this._mode = "view"; }
     if (this._mode === "set") this._leave("view");
