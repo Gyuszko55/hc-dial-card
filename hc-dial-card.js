@@ -998,16 +998,25 @@ class HcDialCard extends HTMLElement {
     const m = this._$("menu");
     let timer = 0, btn = null;
     const stop = () => { clearTimeout(timer); if (btn) btn.classList.remove("hold"); btn = null; };
+    this._thStop = stop; // closing the list cancels a press in progress
     m.addEventListener("pointerdown", (e) => {
       if (this._menuKind !== "therm") return;
+      clearTimeout(this._thT);
       const b = e.target.closest("button[data-e]");
       if (!b) return;
       stop();
       btn = b;
       b.classList.add("hold");
-      timer = setTimeout(() => { const id = b.dataset.e; stop(); this._thHeld = true; this._thSel = id; this._toggleTherm(id); }, 650);
+      timer = setTimeout(() => {
+        const id = b.dataset.e;
+        const open = this._mode === "menu" && this._menuKind === "therm" && b.isConnected && this._$("dev").classList.contains("menuopen");
+        stop();
+        if (!open) return;
+        this._thHeld = true; this._thSel = id; this._toggleTherm(id);
+      }, 650);
     });
     ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => m.addEventListener(ev, stop));
+    window.addEventListener("pointerup", stop); // released outside the list (e.g. it closed meanwhile)
     m.addEventListener("scroll", stop, { passive: true });
   }
   async _toggleTherm(id) {
@@ -1069,15 +1078,22 @@ class HcDialCard extends HTMLElement {
     let t = m.querySelector(".mt small");
     if (t) { t.textContent = text; t.style.color = ok ? "#7bc043" : "#e57373"; }
     clearTimeout(this._thT);
-    this._thT = setTimeout(() => { if (this._mode === "menu" && this._menuKind === "therm") this._openThermMenuAgain(); }, 1600);
+    // success: the list closes after 5 s (touching it again keeps it open); error: back to the hint
+    this._thT = setTimeout(() => {
+      if (this._mode !== "menu" || this._menuKind !== "therm") return;
+      if (ok) this._closeMenu(); else this._openThermMenuAgain();
+    }, ok ? 5000 : 1600);
   }
   _openThermMenuAgain() {
+    if (this._thStop) this._thStop();
     const top = this._$("menu").scrollTop;
     this._mode = "view";
     this._openThermMenu();
     this._$("menu").scrollTop = top;
   }
   _closeMenu() {
+    clearTimeout(this._thT);
+    if (this._thStop) this._thStop();
     this._$("menu").classList.remove("tl");
     this._$("dev").classList.remove("menuopen");
     this._mode = "view";
