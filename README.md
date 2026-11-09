@@ -67,8 +67,10 @@ weather: weather.home
 outdoor: sensor.outdoor_temperature
 humidity: sensor.living_room_humidity
 heating: binary_sensor.boiler_burning   # optional: real burner state for the flame
-heat_type: auto                         # optional: icon of the heat – gas_boiler (rising red heat), floor,
-                                        # radiator, heat_pump, air_conditioner (sun / snowflake), electric,
+power: sensor.ac_power                  # optional: power draw (W); the three steps are thirds of power_max
+power_max: 1800                         # optional, default 1800 W (power_idle: 40 W = standing)
+heat_type: auto                         # optional: icon of the heat – gas_boiler (rising red heat; flame while burning), floor,
+                                        # radiator, heat_pump, air_conditioner (sun-snowflake, orange heating / blue cooling; fan while running), electric,
                                         # stove, district, solar, flame; auto = the thermostat's heat_type
                                         # attribute (HC Thermostat), else air_conditioner if it can cool
 window: [binary_sensor.living_window]

@@ -11,6 +11,8 @@
  *   entity: climate.living_room          (required)
  *   decision: sensor.x                   (optional: HC Thermostat decision sensor – demand bars, window)
  *   heating: binary_sensor.x             (optional: real burner / compressor state)
+ *   power: sensor.x                      (optional: power draw in W – the three steps are thirds of power_max;
+ *                                         power_max: 1800, power_idle: 40)
  *   heat_type: auto                      (icon of the heat: gas_boiler, floor, radiator, heat_pump, air_conditioner,
  *                                         electric, stove, district, solar, flame; auto = the thermostat's heat_type
  *                                         attribute, else air_conditioner if it can cool, else gas_boiler)
@@ -48,7 +50,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.11.0";
+const HC_DIAL_VERSION = "1.12.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -58,16 +60,17 @@ const MODE_ICON = {
 // heat_type, else the thermostat's heat_type attribute (HC Thermostat publishes it), else guessed:
 // a thermostat that can cool is an air conditioner, anything else a boiler.
 const HEAT_TYPE = {
-  gas_boiler: { heat: ["mdi:heat-wave", "#ff3b30"] },
-  floor: { heat: ["mdi:heating-coil", "#ff5a1f"] },
-  radiator: { heat: ["mdi:radiator", "#ff5a1f"] },
-  heat_pump: { heat: ["mdi:heat-pump", "#ff7a1a"], cool: ["mdi:heat-pump", "#2f8cff"] },
-  air_conditioner: { heat: ["mdi:white-balance-sunny", "#ff9f1a"], cool: ["mdi:snowflake", "#2f8cff"] },
-  electric: { heat: ["mdi:flash", "#ffb300"] },
-  stove: { heat: ["mdi:fireplace", "#ff5a1f"] },
-  district: { heat: ["mdi:water-thermometer", "#ff3b30"] },
-  solar: { heat: ["mdi:solar-power-variant", "#ffb300"] },
-  flame: { heat: ["mdi:fire", "#ff7a1a"] },
+  // mode: the mode dot (what kind of heat), run: the second icon (what is working now)
+  gas_boiler: { mode: ["mdi:heat-wave", "#ff3b30"], run: ["mdi:fire", "#ff8a1f"] },
+  floor: { mode: ["mdi:heating-coil", "#ff5a1f"], run: ["mdi:fire", "#ff8a1f"] },
+  radiator: { mode: ["mdi:radiator", "#ff5a1f"], run: ["mdi:valve-open", "#ff8a1f"] },
+  heat_pump: { mode: ["mdi:heat-pump", "#ff7a1a"], run: ["mdi:fan", "#ff8a1f"], cool: ["mdi:heat-pump", "#2f8cff"], coolRun: ["mdi:fan", "#4fb3ff"] },
+  air_conditioner: { mode: ["mdi:sun-snowflake-variant", "#ff7a1a"], run: ["mdi:fan", "#ff8a1f"], cool: ["mdi:sun-snowflake-variant", "#2f8cff"], coolRun: ["mdi:fan", "#4fb3ff"] },
+  electric: { mode: ["mdi:flash", "#ffb300"], run: ["mdi:flash", "#ffb300"] },
+  stove: { mode: ["mdi:fireplace", "#ff5a1f"], run: ["mdi:fire", "#ff8a1f"] },
+  district: { mode: ["mdi:water-thermometer", "#ff3b30"], run: ["mdi:pump", "#ff8a1f"] },
+  solar: { mode: ["mdi:solar-power-variant", "#ffb300"], run: ["mdi:pump", "#ffb300"] },
+  flame: { mode: ["mdi:fire", "#ff7a1a"], run: ["mdi:fire", "#ff8a1f"] },
 };
 const HEAT_TYPES = ["auto", ...Object.keys(HEAT_TYPE)];
 // hvac_action → [icon, colour] shown in place of the flame / bars
@@ -1003,10 +1006,13 @@ class HcDialCard extends HTMLElement {
     const act = a.hvac_action;
     const cool = act === "cooling" || (act === undefined || act === null ? st.state === "cool" : false);
     const kind = HEAT_TYPE[this._heatType(st)];
-    const [mIcon, mCol] = st.state === "heat" ? kind.heat : st.state === "cool" && kind.cool ? kind.cool
+    // the mode dot shows the kind of heat; a heat-and-cool unit takes the colour of what it is doing
+    const coolNow = act === "cooling" || (st.state === "cool" && act !== "heating");
+    const [mIcon, mCol] = st.state === "heat" || (kind.cool && ["heat_cool", "auto"].includes(st.state) && !coolNow) ? kind.mode
+      : (st.state === "cool" || (kind.cool && coolNow)) ? (kind.cool || MODE_ICON.cool)
       : MODE_ICON[st.state] || ["mdi:thermostat", "#777"];
     $("mico").setAttribute("icon", mIcon);
-    $("mdot").style.background = st.state === "heat_cool" ? (act === "heating" ? "#ff7a1a" : act === "cooling" ? "#2f8cff" : mCol) : mCol;
+    $("mdot").style.background = !kind.cool && st.state === "heat_cool" ? (act === "heating" ? "#ff7a1a" : act === "cooling" ? "#2f8cff" : mCol) : mCol;
 
     // preset
     const pm = a.preset_mode;
@@ -1028,18 +1034,27 @@ class HcDialCard extends HTMLElement {
     const log = dec && Array.isArray(dec.attributes.log) ? dec.attributes.log : [];
     const lastLog = log.length ? log[log.length - 1] : null;
     const demand = lastLog && Number.isFinite(lastLog.demand) ? lastLog.demand : null;
+    // real level for the three steps: power draw (AC / heat pump), else the demand (HC), else all three
+    const power = cfg.power ? this._num(cfg.power) : null;
+    const pMax = Number(cfg.power_max) || 1800, pIdle = Number(cfg.power_idle) || 40;
+    let level = null;
+    if (power !== null) level = power <= pIdle ? 0 : power < pMax / 3 ? 1 : power < (2 * pMax) / 3 ? 2 : 3;
+    else {
+      const d = Number.isFinite(parseFloat(a.demand)) ? parseFloat(a.demand) : demand;
+      if (d !== null && d !== undefined) level = d <= 0 ? 0 : d <= 10 ? 1 : d <= 30 ? 2 : 3;
+    }
     const burningSt = this._st(cfg.heating);
-    const actIcon = act === "heating" || act === "preheating" ? kind.heat
-      : act === "cooling" ? (kind.cool || ACTION_ICON.cooling) : ACTION_ICON[act];
-    const burning = burningSt ? burningSt.state === "on" : !!actIcon;
+    const actIcon = act === "heating" || act === "preheating" ? kind.run
+      : act === "cooling" ? (kind.coolRun || ACTION_ICON.cooling) : ACTION_ICON[act];
+    const burning = burningSt ? burningSt.state === "on" : power !== null ? power > pIdle && !!actIcon : !!actIcon;
     const requesting = !!actIcon;
     const burnEl = $("burn");
     burnEl.style.setProperty("--act", actIcon ? actIcon[1] : "#ff8a1f");
-    burnEl.querySelector("ha-icon").setAttribute("icon", actIcon ? actIcon[0] : kind.heat[0]);
+    burnEl.querySelector("ha-icon").setAttribute("icon", actIcon ? actIcon[0] : kind.run[0]);
     burnEl.title = act || "";
     burnEl.classList.toggle("on", burning);
     burnEl.classList.toggle("req", !burning && requesting);
-    const nb = demand === null ? (burning || requesting ? 3 : 0) : demand <= 0 ? 0 : demand < 34 ? 1 : demand < 67 ? 2 : 3;
+    const nb = level === null ? (burning || requesting ? 3 : 0) : Math.max(level, burning ? 1 : 0);
     burnEl.querySelectorAll(".bars i").forEach((el, i) => el.classList.toggle("on", i < nb && (burning || requesting)));
 
     // window
@@ -1125,7 +1140,7 @@ class HcDialCard extends HTMLElement {
 
 // ---------- Visual editor (built on HA's ha-form) ----------
 const EDITOR_LABELS = {
-  hu: { heat_type: "Fűtés fajtája (ikon)", ht_auto: "Automatikus (a termosztát szerint)", ht_gas_boiler: "Gázkazán", ht_floor: "Padlófűtés", ht_radiator: "Radiátor / termosztátfej", ht_heat_pump: "Hőszivattyú", ht_air_conditioner: "Klíma (fűt és hűt)", ht_electric: "Elektromos fűtés", ht_stove: "Kandalló / fatüzelés", ht_district: "Távfűtés", ht_solar: "Napkollektor", ht_flame: "Láng (régi ikon)",
+  hu: { power: "Teljesítmény-szenzor (W; a lépcsőkhöz)", power_max: "Legnagyobb teljesítmény (W)", heat_type: "Fűtés fajtája (ikon)", ht_auto: "Automatikus (a termosztát szerint)", ht_gas_boiler: "Gázkazán", ht_floor: "Padlófűtés", ht_radiator: "Radiátor / termosztátfej", ht_heat_pump: "Hőszivattyú", ht_air_conditioner: "Klíma (fűt és hűt)", ht_electric: "Elektromos fűtés", ht_stove: "Kandalló / fatüzelés", ht_district: "Távfűtés", ht_solar: "Napkollektor", ht_flame: "Láng (régi ikon)",
     entity: "Termosztát", label: "Felirat (max 6 karakter; area = a termosztát területe)", step: "Lépésköz", heating: "Tényleges fűtés jelzője",
     weather: "Időjárás", outdoor: "Kinti hőmérő", humidity: "Páratartalom-szenzor", window: "Ablak/ajtó érzékelők", decision: "HC döntés-szenzor",
     tap_action: "Koppintás", timeout: "SET időtúllépés (mp)", switch_back: "Visszaváltás (mp)", away_hold: "Távollét kivárása (mp)",
@@ -1133,7 +1148,7 @@ const EDITOR_LABELS = {
     rooms: "Helyiség → termosztát (YAML)", room_map: "Érték → helyiség átváltás (YAML)", area_labels: "Terület-rövidítések (YAML)",
     follow_choices: "További jeladók a készülék-menübe", follow_hint: "Helykövetés (opcionális)",
     control: "Szabályozás jelzése (auto, saját szöveg vagy false)", preset_menu: "Preset-menü a preset ikonon" },
-  en: { heat_type: "Kind of heat (icon)", ht_auto: "Automatic (from the thermostat)", ht_gas_boiler: "Gas boiler", ht_floor: "Floor heating", ht_radiator: "Radiator / TRV", ht_heat_pump: "Heat pump", ht_air_conditioner: "Air conditioner (heats and cools)", ht_electric: "Electric heating", ht_stove: "Fireplace / wood stove", ht_district: "District heating", ht_solar: "Solar thermal", ht_flame: "Flame (old icon)",
+  en: { power: "Power sensor (W; for the steps)", power_max: "Maximum power (W)", heat_type: "Kind of heat (icon)", ht_auto: "Automatic (from the thermostat)", ht_gas_boiler: "Gas boiler", ht_floor: "Floor heating", ht_radiator: "Radiator / TRV", ht_heat_pump: "Heat pump", ht_air_conditioner: "Air conditioner (heats and cools)", ht_electric: "Electric heating", ht_stove: "Fireplace / wood stove", ht_district: "District heating", ht_solar: "Solar thermal", ht_flame: "Flame (old icon)",
     entity: "Thermostat", label: "Label (max 6 chars; area = thermostat's area)", step: "Step", heating: "Actual heating sensor",
     weather: "Weather", outdoor: "Outdoor sensor", humidity: "Humidity sensor", window: "Window/door sensors", decision: "HC decision sensor",
     tap_action: "Tap action", timeout: "SET timeout (s)", switch_back: "Switch back (s)", away_hold: "Away hold (s)",
@@ -1167,6 +1182,10 @@ class HcDialCardEditor extends HTMLElement {
         { name: "outdoor", selector: { entity: { domain: "sensor" } } },
         { name: "humidity", selector: { entity: { domain: "sensor" } } },
         { name: "heating", selector: { entity: { domain: "binary_sensor" } } },
+      ] },
+      { type: "grid", name: "", schema: [
+        { name: "power", selector: { entity: { domain: "sensor" } } },
+        { name: "power_max", selector: { number: { min: 100, max: 20000, step: 50, mode: "box" } } },
       ] },
       { name: "heat_type", selector: { select: { mode: "dropdown", options: HEAT_TYPES.map((v) => ({ value: v, label: this._l("ht_" + v) })) } } },
       { name: "window", selector: { entity: { domain: "binary_sensor", multiple: true } } },
