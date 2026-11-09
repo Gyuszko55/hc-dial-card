@@ -993,6 +993,12 @@ class HcDialCard extends HTMLElement {
     this._menuKind = "therm";
     this._vibrate(30);
     this._$("dev").classList.add("menuopen");
+    this._thIdleArm();
+  }
+  // the list closes by itself after 10 s without a touch
+  _thIdleArm() {
+    clearTimeout(this._thIdle);
+    this._thIdle = setTimeout(() => { if (this._mode === "menu" && this._menuKind === "therm") this._closeMenu(); }, 10000);
   }
   _bindThermMenu() {
     const m = this._$("menu");
@@ -1002,6 +1008,7 @@ class HcDialCard extends HTMLElement {
     m.addEventListener("pointerdown", (e) => {
       if (this._menuKind !== "therm") return;
       clearTimeout(this._thT);
+      this._thIdleArm();
       const b = e.target.closest("button[data-e]");
       if (!b) return;
       stop();
@@ -1017,7 +1024,7 @@ class HcDialCard extends HTMLElement {
     });
     ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => m.addEventListener(ev, stop));
     window.addEventListener("pointerup", stop); // released outside the list (e.g. it closed meanwhile)
-    m.addEventListener("scroll", stop, { passive: true });
+    m.addEventListener("scroll", () => { stop(); if (this._menuKind === "therm") this._thIdleArm(); }, { passive: true });
   }
   async _toggleTherm(id) {
     this._vibrate(40);
@@ -1093,6 +1100,7 @@ class HcDialCard extends HTMLElement {
   }
   _closeMenu() {
     clearTimeout(this._thT);
+    clearTimeout(this._thIdle);
     if (this._thStop) this._thStop();
     this._$("menu").classList.remove("tl");
     this._$("dev").classList.remove("menuopen");
