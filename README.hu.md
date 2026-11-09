@@ -69,6 +69,9 @@ humidity: sensor.nappali_paratartalom
 heating: binary_sensor.kazan_eg          # opcionális: a valódi égés jelzője a lánghoz
 power: sensor.klima_teljesitmeny         # opcionális: felvett teljesítmény (W); a 3 lépcső a power_max harmadai
 power_max: 1800                          # opcionális, alap 1800 W (power_idle: 40 W alatt áll)
+                                         # teljesítmény nélkül a termosztát igénye (HC Thermostat, Versatile
+                                         # power_percent, Smart Thermostat control_output): ≤10 % 1 lépcső,
+                                         # ≤30 % 2, fölötte 3; különben fűtéskor mindhárom
 heat_type: auto                          # opcionális: a fűtés ikonja – gas_boiler (piros felszálló hő; égéskor láng), floor,
                                          # radiator, heat_pump, air_conditioner (nap-hópehely, fűtés narancs / hűtés kék; működéskor ventilátor), electric,
                                          # stove, district, solar, flame; auto = a termosztát heat_type

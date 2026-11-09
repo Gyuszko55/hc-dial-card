@@ -11,6 +11,9 @@
  *   entity: climate.living_room          (required)
  *   decision: sensor.x                   (optional: HC Thermostat decision sensor – demand bars, window)
  *   heating: binary_sensor.x             (optional: real burner / compressor state)
+ *   steps: power draw (power) in thirds of power_max, else the thermostat's demand – HC Thermostat demand,
+ *          Versatile power_percent / on_percent, Smart Thermostat control_output (≤10 % one, ≤30 % two, above
+ *          three) – else all three while heating or cooling
  *   power: sensor.x                      (optional: power draw in W – the three steps are thirds of power_max;
  *                                         power_max: 1800, power_idle: 40)
  *   heat_type: auto                      (icon of the heat: gas_boiler, floor, radiator, heat_pump, air_conditioner,
@@ -229,6 +232,16 @@ class HcDialCard extends HTMLElement {
     return (u && (b.follow[u.name] || b.follow[u.id])) || null;
   }
   // Several thermostats in one room: show the one that is on (for a TRV the main thermostat decides).
+  // the thermostat's own demand in %: HC Thermostat (demand), Versatile Thermostat (power_percent, or the
+  // older on_percent 0–1), Smart Thermostat (control_output)
+  _demandPct(a) {
+    const n = (v) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : null);
+    if (n(a.demand) !== null) return n(a.demand);
+    if (n(a.power_percent) !== null) return n(a.power_percent);
+    if (n(a.on_percent) !== null) return n(a.on_percent) * 100;
+    if (n(a.control_output) !== null) return n(a.control_output);
+    return null;
+  }
   // kind of heat: card setting, then the thermostat's own heat_type, then a guess from its modes
   _heatType(st) {
     const t = this._cfg && this._cfg.heat_type;
@@ -1040,7 +1053,7 @@ class HcDialCard extends HTMLElement {
     let level = null;
     if (power !== null) level = power <= pIdle ? 0 : power < pMax / 3 ? 1 : power < (2 * pMax) / 3 ? 2 : 3;
     else {
-      const d = Number.isFinite(parseFloat(a.demand)) ? parseFloat(a.demand) : demand;
+      const d = this._demandPct(a) ?? demand;
       if (d !== null && d !== undefined) level = d <= 0 ? 0 : d <= 10 ? 1 : d <= 30 ? 2 : 3;
     }
     const burningSt = this._st(cfg.heating);

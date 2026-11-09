@@ -69,6 +69,9 @@ humidity: sensor.living_room_humidity
 heating: binary_sensor.boiler_burning   # optional: real burner state for the flame
 power: sensor.ac_power                  # optional: power draw (W); the three steps are thirds of power_max
 power_max: 1800                         # optional, default 1800 W (power_idle: 40 W = standing)
+                                        # without power: the thermostat's demand (HC Thermostat, Versatile
+                                        # power_percent, Smart Thermostat control_output): ≤10 % one step,
+                                        # ≤30 % two, above three; else all three while heating
 heat_type: auto                         # optional: icon of the heat – gas_boiler (rising red heat; flame while burning), floor,
                                         # radiator, heat_pump, air_conditioner (sun-snowflake, orange heating / blue cooling; fan while running), electric,
                                         # stove, district, solar, flame; auto = the thermostat's heat_type
