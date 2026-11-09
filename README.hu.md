@@ -16,6 +16,7 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
 - **Be / ki.** SET módban bekapcsoló gomb, ugyanazzal a hosszú nyomással rögzül. Ahol támogatott, `climate.turn_on` / `climate.turn_off` hívással dolgozik, így a termosztát a saját korábbi módjába tér vissza.
 - **Minden egy pillantásra.** Benti hőfok, cél, időjárás, kinti hőfok, páratartalom, üzemmód, mit csinál éppen (fűt, hűt, előfűt, leolvaszt, szárít, ventilál), preset ikon (takarék = levél, alvás = ágy …), nyitott ablak, elérhetőség.
 - **Helyiségkövetés (opcionális).** Helyiség-szenzorral (Bermuda, ESPresense, Wi-Fi BSSID …) arra a termosztátra vált, amelyik helyiségben vagy. Ha egy helyiségben több termosztát van (pl. TRV és klíma), a bekapcsolt jelenik meg.
+- **Termosztátok hozzáadása kód nélkül.** A termosztát ikonra koppintva (csak adminnak) a kártya felsorolja a felismert termosztátokat és TRV-ket; koppintás kijelöl, hosszú nyomás hozzáadja vagy leveszi. Az új termosztát a saját HA területe alá kerül a `rooms`-ba (TRV `trv: true`-val), a kártya maga menti a vezérlőpultba (YAML módú vezérlőpulton nem lehet). Több termosztát között dupla koppintással lapozol.
 - **Preset-menü.** A preset ikonra koppintva presetet választhatsz (komfort, eco, távol …). HC Thermostattal minden sor azt is mutatja, meddig tart („22:00-ig”, „hazaérkezésig”).
 - **Szabályozás fajtája.** A kártya bal felső részén látszik, mi szabályoz; a preset ikon a hőfok előtt van.
 
@@ -174,7 +175,9 @@ A „YAML” jelű mezők kis objektumok: `{kulcs: érték}` formában vagy soro
 | Hol | Mozdulat | Hatás |
 |---|---|---|
 | Kijelző | hosszú nyomás | SET mód / rögzítés |
-| Kijelző | rövid koppintás | következő termosztát (ha több van) vagy részletek (ha egy) – lásd `tap_action` |
+| Kijelző | dupla koppintás | következő termosztát (ha több van) – lásd `tap_action` |
+| Kijelző | rövid koppintás | részletek (ha egy termosztát van) |
+| Termosztát ikon (nézet, admin) | koppintás | termosztát-lista: koppintás kijelöl, hosszú nyomás hozzáad / levesz |
 | Gyűrű (SET) | körbe húzás | a cél állítása |
 | Kijelző (SET, tartomány) | rövid koppintás | váltás a fűtési / hűtési cél között |
 | Bekapcsoló gomb (SET) | koppintás | be / ki |
@@ -194,7 +197,8 @@ Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szók�
 | `heating` | – | bináris szenzor a valódi égéshez / kompresszorhoz |
 | `window` | az entitás `window_open`/`door_open` | bináris szenzor(ok) nyitott ablakhoz |
 | `decision` | – | HC Thermostat döntés-szenzor (igény-sávok, ablak) |
-| `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
+| `tap_action` | `auto` | `auto` (több termosztát: dupla koppintás vált, egy: koppintás = részletek), `more-info`, `cycle`, `none` |
+| `manage` | true | termosztát ikon adminoknak: felismert termosztátok és TRV-k listája, hosszú nyomással hozzáadás / levétel |
 | `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
 | `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
 | `preset_menu` | true | a preset ikonra koppintva preset-menü nyílik |

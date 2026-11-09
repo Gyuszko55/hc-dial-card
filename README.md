@@ -16,6 +16,7 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 - **On / off.** A power button in SET mode; saved with the same long press. Uses `climate.turn_on` / `climate.turn_off` when supported, so the thermostat returns to its own previous mode.
 - **Status at a glance.** Room temperature, target, weather, outdoor temperature, humidity, HVAC mode, current action (heating, cooling, preheating, defrosting, drying, fan), preset icon (eco = leaf, sleep = bed …), open window, availability.
 - **Room following (optional).** With a room-presence sensor (Bermuda, ESPresense, Wi-Fi BSSID …) the card switches to the thermostat of the room you are in. Several thermostats in one room (e.g. a TRV and an air conditioner): the one that is switched on wins.
+- **Add thermostats without code.** Tap the thermostat icon (admins only): the card lists the recognised thermostats and TRVs; tap selects, long press adds or removes. A new one goes into `rooms` under its HA area (a TRV with `trv: true`); the card saves itself to the dashboard (not possible on a YAML-mode dashboard). Double tap cycles between the thermostats.
 - **Preset menu.** Tap the preset icon to choose a preset (comfort, eco, away …). With HC Thermostat each line also tells how long the preset lasts ("until 22:00", "until someone is home").
 - **Control type.** At the top left the card shows what regulates; the preset icon sits in front of the temperature.
 
@@ -174,7 +175,9 @@ Fields marked YAML are small objects: type them as `{key: value}` or as one `key
 | Where | Gesture | Action |
 |---|---|---|
 | Display | long press | enter SET / save |
-| Display | short tap | next thermostat (several) or more-info (one) – see `tap_action` |
+| Display | double tap | next thermostat (several) – see `tap_action` |
+| Display | short tap | more-info (one thermostat) |
+| Thermostat icon (view, admin) | tap | thermostat list: tap selects, long press adds / removes |
 | Ring (SET) | drag around | change the target |
 | Display (SET, range) | short tap | switch heating / cooling target |
 | Power button (SET) | tap | on / off |
@@ -194,7 +197,8 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `heating` | – | binary sensor for the real burner/compressor state |
 | `window` | entity `window_open`/`door_open` | binary sensor(s) for open windows |
 | `decision` | – | HC Thermostat decision sensor (demand bars, window) |
-| `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
+| `tap_action` | `auto` | `auto` (several thermostats: double tap cycles, one: tap = more-info), `more-info`, `cycle`, `none` |
+| `manage` | true | thermostat icon for admins: list of recognised thermostats and TRVs, long press adds / removes |
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
 | `preset_menu` | true | tap on the preset icon opens the preset menu |
