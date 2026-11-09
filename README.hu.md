@@ -11,7 +11,7 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
 
 ## Tudnivalók
 
-- **Biztonságos állítás.** Tartsd nyomva a kijelzőt: SET módba lép. Forgasd a recés gyűrűt (vagy használd az egérgörgőt, a nyilakat), majd újabb hosszú nyomással rögzítsd. Forgatás közben semmit nem küld; 15 másodperc érintés nélkül mentés nélkül kilép a SET módból.
+- **Biztonságos állítás.** Tartsd nyomva a kijelzőt: SET módba lép (a tetején a termosztát neve és területe, hogy lásd, melyiket állítod). Forgasd a recés gyűrűt (vagy használd az egérgörgőt, a nyilakat), majd újabb hosszú nyomással rögzítsd. Forgatás közben semmit nem küld; 15 másodperc érintés nélkül mentés nélkül kilép a SET módból.
 - **Bármely climate entitás.** Egy cél (`temperature`) vagy tartomány (`target_temp_low` / `target_temp_high`): SET módban rövid koppintás vált a fűtési és a hűtési cél között. A kártya a `supported_features` alapján csak azt kínálja, amit a termosztát tud.
 - **Be / ki.** SET módban bekapcsoló gomb, ugyanazzal a hosszú nyomással rögzül. Ahol támogatott, `climate.turn_on` / `climate.turn_off` hívással dolgozik, így a termosztát a saját korábbi módjába tér vissza.
 - **Minden egy pillantásra.** Benti hőfok, cél, időjárás, kinti hőfok, páratartalom, üzemmód, mit csinál éppen (fűt, hűt, előfűt, leolvaszt, szárít, ventilál), preset ikon (takarék = levél, alvás = ágy …), nyitott ablak, elérhetőség.

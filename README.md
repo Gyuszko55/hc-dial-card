@@ -11,7 +11,7 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 
 ## Features
 
-- **Safe setting.** Long-press the display to enter SET mode, turn the knurled ring (or use the mouse wheel / arrow keys) and long-press again to save. Nothing is sent while you turn; after 15 seconds without touch the card leaves SET mode without saving.
+- **Safe setting.** Long-press the display to enter SET mode (the thermostat's name and area at the top, so you see which one you set), turn the knurled ring (or use the mouse wheel / arrow keys) and long-press again to save. Nothing is sent while you turn; after 15 seconds without touch the card leaves SET mode without saving.
 - **Any climate entity.** Single target (`temperature`) or range (`target_temp_low` / `target_temp_high`): in SET mode a short tap switches between the heating and the cooling target. The card reads `supported_features`, so it only offers what the thermostat can do.
 - **On / off.** A power button in SET mode; saved with the same long press. Uses `climate.turn_on` / `climate.turn_off` when supported, so the thermostat returns to its own previous mode.
 - **Status at a glance.** Room temperature, target, weather, outdoor temperature, humidity, HVAC mode, current action (heating, cooling, preheating, defrosting, drying, fan), preset icon (eco = leaf, sleep = bed …), open window, availability.

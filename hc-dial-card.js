@@ -576,6 +576,9 @@ class HcDialCard extends HTMLElement {
         .dev.set .hint { display:flex; justify-content:center; }
         .setl { left:50%; top:25%; display:none; font-size:calc(4.2 * var(--cq)); letter-spacing:.3em; color:#ff9a3c; font-weight:600; }
         .dev.set .setl { display:flex; }
+        .setn { left:50%; top:15.5%; display:none; max-width:58%; font-size:calc(3.4 * var(--cq)); color:#e6e6e6; letter-spacing:.03em; }
+        .setn span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dev.set .setn { display:flex; }
         .setl small { font-size:calc(2.8 * var(--cq)); letter-spacing:.15em; margin-left:calc(1.4 * var(--cq)); }
         .dev.cool .setl, .dev.cool.set .big { color:#6fb6ff; }
         .dev.cool.set .line { background:#2f8cff; }
@@ -626,6 +629,7 @@ class HcDialCard extends HTMLElement {
             <div class="abs burn" id="burn"><ha-icon icon="mdi:fire"></ha-icon><div class="bars"><i></i><i></i><i></i></div></div>
             <div class="abs win" id="win"><ha-icon icon="mdi:window-open-variant"></ha-icon></div>
             <div class="abs wifi" id="wifi"><ha-icon id="wifii" icon="mdi:wifi"></ha-icon></div>
+            <div class="abs setn" id="setn"><span id="setnt"></span></div>
             <div class="abs setl" id="setl">SET<small id="setf"></small></div>
             <div class="abs lbl" id="lbl"><span id="lblt"></span></div>
             <div class="abs big" id="big">--</div>
@@ -1324,6 +1328,11 @@ class HcDialCard extends HTMLElement {
     const fieldCool = setting && this._field === "target_temp_high";
     dev.classList.toggle("cool", fieldCool);
     $("setf").textContent = !setting || !range ? "" : fieldCool ? this._t("cool") : this._t("heat");
+    // SET mode: which thermostat is being set (its name, and its area when the name does not tell it)
+    if (setting) {
+      const fname = st.attributes.friendly_name || this._cfg.entity, area = this._entityArea(this._cfg.entity);
+      $("setnt").textContent = area && !norm(fname).includes(norm(area)) ? `${area} · ${fname}` : fname;
+    }
     // label: "auto" → while following, the room you are in (area_labels abbreviations); a candidate's own label wins
     let lab = this._cand && this._cand.label ? this._cand.label : cfg.label;
     if (lab === "auto") lab = this._following && this._area ? this._short(this._area) : "";
