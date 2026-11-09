@@ -424,6 +424,7 @@ class HcDialCard extends HTMLElement {
       };
     }
     document.addEventListener("pointerdown", this._outside, true);
+    if (this.shadowRoot) setTimeout(() => this._fontZoom(), 0);
     this._clock = setInterval(() => this._renderClock(), 15000);
     this._renderClock();
   }
@@ -478,14 +479,43 @@ class HcDialCard extends HTMLElement {
   }
 
   /* ---------- DOM ---------- */
+  // The card's own font: Home Assistant's bundled Roboto (every HA serves it under /static/fonts/roboto) under a
+  // name of its own, so a phone-wide font replacement (Samsung, MIUI …) cannot swap it. @font-face does not work
+  // inside a shadow root, hence the document head.
+  static _fonts() {
+    if (document.getElementById("hc-dial-card-fonts")) return;
+    const st = document.createElement("style");
+    st.id = "hc-dial-card-fonts";
+    st.textContent = [[300, "Light"], [400, "Regular"], [500, "Medium"], [700, "Bold"]].map(([w, n]) =>
+      `@font-face{font-family:"HC Dial Roboto";font-style:normal;font-weight:${w};font-display:swap;src:url("/static/fonts/roboto/Roboto-${n}.woff2") format("woff2");}`).join("");
+    document.head.appendChild(st);
+  }
+  // Android text zoom (system font size) scales every font size; measure it and divide it out
+  _fontZoom() {
+    try {
+      const probe = document.createElement("span");
+      probe.style.cssText = "position:absolute;visibility:hidden;font-size:100px;line-height:1";
+      probe.textContent = "0";
+      this.shadowRoot.appendChild(probe);
+      const z = parseFloat(getComputedStyle(probe).fontSize) / 100;
+      probe.remove();
+      const dev = this._$("dev");
+      if (Number.isFinite(z) && z > 0.5 && z < 3 && Math.abs(z - 1) > 0.02) dev.style.setProperty("--fzoom", z.toFixed(3));
+      else dev.style.removeProperty("--fzoom");
+    } catch (e) { /* keep 1 */ }
+  }
   _build() {
+    HcDialCard._fonts();
     const root = this.attachShadow({ mode: "open" });
     root.innerHTML = `
       <style>
-        :host { display:block; }
-        ha-card { background: transparent; border: none; box-shadow: none; border-radius: 0;
+        :host { display:block; -webkit-text-size-adjust:none; text-size-adjust:none; }
+        ha-card { --hc-dial-font: "HC Dial Roboto", Roboto, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+                  background: transparent; border: none; box-shadow: none; border-radius: 0;
                   padding: 3%; box-sizing: border-box; overflow: visible; container-type: inline-size; --cq: 1cqw; }
         .disp:focus-visible { outline: 3px solid #ff9a3c; outline-offset: 2px; }
+        /* text sizes: --cqf = --cq divided by the phone's text zoom (measured), so a larger system font cannot break the layout */
+        .dev { --cqf: calc(var(--cq) / var(--fzoom, 1)); font-family: var(--hc-dial-font); }
         .dev { position: relative; width: 100%; aspect-ratio: 1; margin: 0 auto; max-width: 520px;
                user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         /* knurled outer ring */
@@ -512,16 +542,16 @@ class HcDialCard extends HTMLElement {
                  box-shadow: 0 0 0 2px #000, inset 0 2px 6px rgba(255,255,255,.25), inset 0 -4px 10px rgba(0,0,0,.9); }
         .disp { position:absolute; inset:11%; border-radius:50%; background: radial-gradient(circle at 50% 40%, #0b0c0e, #000 70%);
                 box-shadow: inset 0 0 18px rgba(0,0,0,1), 0 0 0 2px #111; overflow:hidden; color:#fff;
-                font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; touch-action: manipulation; cursor:pointer; }
+                font-family: var(--hc-dial-font); touch-action: manipulation; cursor:pointer; }
         .disp::before { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
                 background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,0) 40%); }
         .abs { position:absolute; transform: translate(-50%,-50%); display:flex; align-items:center; gap:calc(.6 * var(--cq)); white-space:nowrap; }
         ha-icon { --mdc-icon-size: calc(5.6 * var(--cq)); display:flex; }
-        .wx { left:50%; top:14%; font-size:calc(4 * var(--cq)); color:#e8e8e8; gap:calc(1.6 * var(--cq)); }
+        .wx { left:50%; top:14%; font-size:calc(4 * var(--cqf)); color:#e8e8e8; gap:calc(1.6 * var(--cq)); }
         .wx ha-icon { color:#f2f2f2; }
         .wx .drop { color:#4fb3ff; --mdc-icon-size: calc(3.8 * var(--cq)); }
         .eco { left:20.5%; top:49%; transform: translate(-100%, -50%); color:#bbb; }
-        .ctl { left:20%; top:27%; font-size:calc(3.2 * var(--cq)); font-weight:600; letter-spacing:.08em; color:#8fb3c9; }
+        .ctl { left:20%; top:27%; font-size:calc(3.2 * var(--cqf)); font-weight:600; letter-spacing:.08em; color:#8fb3c9; }
         .ctl:empty { display:none; }
         .mode { left:41%; top:27%; }
         .mode .dot { width:calc(7.6 * var(--cq)); height:calc(7.6 * var(--cq)); border-radius:50%; display:flex; align-items:center; justify-content:center; background:#333; }
@@ -539,28 +569,28 @@ class HcDialCard extends HTMLElement {
         .wifi { left:86%; top:54%; color:#2f8cff; }
         .wifi.off { color:#e53935; }
         @keyframes blink { 50% { opacity:.25; } }
-        .lbl { left:24%; top:38.5%; transform: translate(-100%, -50%); font-size:calc(2.6 * var(--cq)); letter-spacing:.1em; color:#cfcfcf; }
-        .big { left:50%; top:47%; font-weight:300; font-size:calc(20 * var(--cq)); line-height:1; letter-spacing:-.02em; }
-        .big sup { font-size:calc(5 * var(--cq)); font-weight:400; vertical-align: top; position:relative; top:calc(1.8 * var(--cq)); margin-left:calc(.4 * var(--cq)); }
+        .lbl { left:24%; top:38.5%; transform: translate(-100%, -50%); font-size:calc(2.6 * var(--cqf)); letter-spacing:.1em; color:#cfcfcf; }
+        .big { left:50%; top:47%; font-weight:300; font-size:calc(20 * var(--cqf)); line-height:1; letter-spacing:-.02em; }
+        .big sup { font-size:calc(5 * var(--cqf)); font-weight:400; vertical-align: top; position:relative; top:calc(1.8 * var(--cq)); margin-left:calc(.4 * var(--cq)); }
         .line { left:50%; top:61%; width:52%; height:calc(.55 * var(--cq)); border-radius:calc(1 * var(--cq)); background:#9bd22c; transition: background .4s; }
-        .sub { left:50%; top:70%; font-size:calc(6 * var(--cq)); font-weight:300; gap:calc(1.2 * var(--cq)); }
-        .sub small { font-size:calc(2.4 * var(--cq)); letter-spacing:.1em; color:#cfcfcf; align-self:flex-start; margin-top:calc(.6 * var(--cq)); }
-        .sub .u { font-size:calc(2.8 * var(--cq)); align-self:flex-start; margin-top:calc(.4 * var(--cq)); }
+        .sub { left:50%; top:70%; font-size:calc(6 * var(--cqf)); font-weight:300; gap:calc(1.2 * var(--cq)); }
+        .sub small { font-size:calc(2.4 * var(--cqf)); letter-spacing:.1em; color:#cfcfcf; align-self:flex-start; margin-top:calc(.6 * var(--cq)); }
+        .sub .u { font-size:calc(2.8 * var(--cqf)); align-self:flex-start; margin-top:calc(.4 * var(--cq)); }
         .lock { left:19%; top:72%; color:#3d8bfd; }
         .shadowm { left:83%; top:63%; color:#3bb54a; }
         .tlist { left:81%; top:72%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
         .dev.set .tlist { display:none !important; }
         .dev.menuopen .menu.tl { justify-content:flex-start; padding:17% 15% 14%; gap:calc(.9 * var(--cq)); }
-        .menu.tl .mt small { display:block; font-size:calc(2.3 * var(--cq)); color:#888; margin-top:calc(.4 * var(--cq)); text-align:center; }
-        .menu.tl .mi { font-size:calc(3 * var(--cq)); padding:calc(.9 * var(--cq)) calc(1.6 * var(--cq)); text-align:left; position:relative; overflow:hidden; }
-        .menu.tl .mi small { display:block; font-size:calc(2.2 * var(--cq)); color:#9aa; }
+        .menu.tl .mt small { display:block; font-size:calc(2.3 * var(--cqf)); color:#888; margin-top:calc(.4 * var(--cq)); text-align:center; }
+        .menu.tl .mi { font-size:calc(3 * var(--cqf)); padding:calc(.9 * var(--cq)) calc(1.6 * var(--cq)); text-align:left; position:relative; overflow:hidden; }
+        .menu.tl .mi small { display:block; font-size:calc(2.2 * var(--cqf)); color:#9aa; }
         .menu.tl .mi.on { border-color:#3bb54a; }
         .menu.tl .mi.on::after { content:"✓"; position:absolute; right:calc(1.6 * var(--cq)); top:50%; transform:translateY(-50%); color:#3bb54a; }
         .menu.tl .mi.sel { border-color:#ff9a3c; color:#ffb067; }
         .menu.tl .mi.hold::before { content:""; position:absolute; inset:0; background:rgba(255,154,60,.35); transform-origin:left;
                                     animation: fillx .65s linear forwards; }
         @keyframes fillx { from { transform:scaleX(0); } to { transform:scaleX(1); } }
-        .pwr { left:81%; top:70%; display:none; flex-direction:column; gap:calc(.2 * var(--cq)); font-size:calc(2.2 * var(--cq)); letter-spacing:.1em; color:#888;
+        .pwr { left:81%; top:70%; display:none; flex-direction:column; gap:calc(.2 * var(--cq)); font-size:calc(2.2 * var(--cqf)); letter-spacing:.1em; color:#888;
                padding:calc(1.2 * var(--cq)); border-radius:50%; cursor:pointer; }
         .pwr ha-icon { --mdc-icon-size: calc(8 * var(--cq)); }
         .pwr.on { color:#7bc043; }
@@ -568,18 +598,18 @@ class HcDialCard extends HTMLElement {
         .dev.set .shadowm { display:none !important; }
         .dev.poff .big { color:#777 !important; }
         .dev.poff .line { background:#555 !important; animation:none; }
-        .clock { left:50%; top:84%; font-size:calc(5 * var(--cq)); font-weight:500; letter-spacing:.04em; gap:calc(2.2 * var(--cq)); }
+        .clock { left:50%; top:84%; font-size:calc(5 * var(--cqf)); font-weight:500; letter-spacing:.04em; gap:calc(2.2 * var(--cq)); }
         .eco.tap { cursor:pointer; }
-        .hint { left:50%; top:83%; font-size:calc(2.9 * var(--cq)); color:#bbb; display:none; text-align:center; white-space:normal; width:56%; }
+        .hint { left:50%; top:83%; font-size:calc(2.9 * var(--cqf)); color:#bbb; display:none; text-align:center; white-space:normal; width:56%; }
         /* SET mode */
         .dev.set .lbl, .dev.set .sub, .dev.set .clock { display:none; }
         .dev.set .hint { display:flex; justify-content:center; }
-        .setl { left:50%; top:25%; display:none; font-size:calc(4.2 * var(--cq)); letter-spacing:.3em; color:#ff9a3c; font-weight:600; }
+        .setl { left:50%; top:25%; display:none; font-size:calc(4.2 * var(--cqf)); letter-spacing:.3em; color:#ff9a3c; font-weight:600; }
         .dev.set .setl { display:flex; }
-        .setn { left:50%; top:15.5%; display:none; max-width:58%; font-size:calc(3.4 * var(--cq)); color:#e6e6e6; letter-spacing:.03em; }
+        .setn { left:50%; top:15.5%; display:none; max-width:58%; font-size:calc(3.4 * var(--cqf)); color:#e6e6e6; letter-spacing:.03em; }
         .setn span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .dev.set .setn { display:flex; }
-        .setl small { font-size:calc(2.8 * var(--cq)); letter-spacing:.15em; margin-left:calc(1.4 * var(--cq)); }
+        .setl small { font-size:calc(2.8 * var(--cqf)); letter-spacing:.15em; margin-left:calc(1.4 * var(--cq)); }
         .dev.cool .setl, .dev.cool.set .big { color:#6fb6ff; }
         .dev.cool.set .line { background:#2f8cff; }
         .dev.cool.set .ring { box-shadow: 0 0 0 1px #000, 0 0 26px rgba(47,140,255,.6), 0 10px 30px rgba(0,0,0,.8); }
@@ -589,9 +619,9 @@ class HcDialCard extends HTMLElement {
         .dev.set .big { color:#ffb067; }
         .dev.set .line { background:#ff8a1f; animation: pulse 1.2s infinite; }
         @keyframes pulse { 50% { opacity:.35; } }
-        .cur { left:50%; top:70%; display:none; font-size:calc(3.3 * var(--cq)); color:#aaa; }
+        .cur { left:50%; top:70%; display:none; font-size:calc(3.3 * var(--cqf)); color:#aaa; }
         .dev.set .cur { display:flex; }
-        .toast { left:50%; top:50%; display:none; flex-direction:column; gap:calc(1 * var(--cq)); font-size:calc(5 * var(--cq)); background:rgba(0,0,0,.85);
+        .toast { left:50%; top:50%; display:none; flex-direction:column; gap:calc(1 * var(--cq)); font-size:calc(5 * var(--cqf)); background:rgba(0,0,0,.85);
                  width:100%; height:100%; justify-content:center; border-radius:50%; }
         .toast ha-icon { --mdc-icon-size: calc(12 * var(--cq)); }
         .dev.saved .toast, .dev.cancel .toast { display:flex; }
@@ -603,18 +633,18 @@ class HcDialCard extends HTMLElement {
         .menu { position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,.92); display:none; flex-direction:column;
                 align-items:center; justify-content:center; gap:calc(1.2 * var(--cq)); padding:12% 14%; overflow:auto; }
         .dev.menuopen .menu { display:flex; }
-        .menu .mt { font-size:calc(3 * var(--cq)); color:#bbb; letter-spacing:.06em; margin-bottom:calc(.6 * var(--cq)); }
-        .menu .mi { font: inherit; font-size:calc(3.4 * var(--cq)); color:#eee; background:#1e2024; border:1px solid #333; border-radius:calc(2.4 * var(--cq));
+        .menu .mt { font-size:calc(3 * var(--cqf)); color:#bbb; letter-spacing:.06em; margin-bottom:calc(.6 * var(--cq)); }
+        .menu .mi { font: inherit; font-size:calc(3.4 * var(--cqf)); color:#eee; background:#1e2024; border:1px solid #333; border-radius:calc(2.4 * var(--cq));
                     padding:calc(1.2 * var(--cq)) calc(2.4 * var(--cq)); width:100%; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .menu .mi.sel { border-color:#ff9a3c; color:#ffb067; }
-        .menu .mi.close { background:transparent; border-color:transparent; color:#999; font-size:calc(3 * var(--cq)); }
+        .menu .mi.close { background:transparent; border-color:transparent; color:#999; font-size:calc(3 * var(--cqf)); }
         .menu .mi { flex-shrink:0; }
         .dev.menuopen .menu.pm { display:grid; grid-template-columns:1fr 1fr; align-content:center; gap:calc(1 * var(--cq)); padding:15% 13%; }
         .menu.pm .mt, .menu.pm .mi.close { grid-column:1 / -1; justify-self:center; }
-        .menu.pm .mi { font-size:calc(3 * var(--cq)); padding:calc(.9 * var(--cq)) calc(1.2 * var(--cq)); line-height:1.15; }
-        .menu.pm .mi small { display:block; font-size:calc(2.3 * var(--cq)); color:#9aa; margin-top:calc(.2 * var(--cq)); }
+        .menu.pm .mi { font-size:calc(3 * var(--cqf)); padding:calc(.9 * var(--cq)) calc(1.2 * var(--cq)); line-height:1.15; }
+        .menu.pm .mi small { display:block; font-size:calc(2.3 * var(--cqf)); color:#9aa; margin-top:calc(.2 * var(--cq)); }
         .menu.pm .mi.sel small { color:#d9a36a; }
-        .unav { left:50%; top:50%; font-size:calc(4 * var(--cq)); color:#e53935; display:none; }
+        .unav { left:50%; top:50%; font-size:calc(4 * var(--cqf)); color:#e53935; display:none; }
         .dev.unavail .unav { display:flex; }
       </style>
       <ha-card>
@@ -654,6 +684,7 @@ class HcDialCard extends HTMLElement {
     this._bindThermMenu();
     this._bindRing();
     this._bindKeys();
+    setTimeout(() => this._fontZoom(), 0);
     // old browsers (no container queries): compute --cq from the card's width
     try {
       if (!(window.CSS && CSS.supports && CSS.supports("width", "1cqw"))) {
