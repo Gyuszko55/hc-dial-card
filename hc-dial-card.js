@@ -59,7 +59,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.13.0";
+const HC_DIAL_VERSION = "1.13.1";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -904,6 +904,28 @@ class HcDialCard extends HTMLElement {
       else if (k === "p" || k === "P") { e.preventDefault(); this._togglePower(); }
     });
   }
+  // Menus are built from DOM nodes: values coming from entities or the config (preset names, entity names, follow
+  // values) only ever go into textContent and dataset, never into innerHTML. rows: { cls, data, text, small }
+  _menuFill(m, title, hint, rows) {
+    const el = (tag, cls, text) => {
+      const x = document.createElement(tag);
+      if (cls) x.className = cls;
+      if (text !== undefined) x.textContent = String(text);
+      return x;
+    };
+    const t = el("div", "mt", title);
+    if (hint) t.append(el("small", "", hint));
+    m.replaceChildren(t);
+    for (const r of rows) {
+      const b = el("button", r.cls, r.text);
+      for (const [k, v] of Object.entries(r.data || {})) b.dataset[k] = String(v);
+      if (r.small !== undefined) b.append(el("small", "", r.small));
+      m.append(b);
+    }
+    const c = el("button", "mi close", this._t("menuClose"));
+    c.dataset.close = "1";
+    m.append(c);
+  }
   _openMenu() {
     if (this._mode !== "view") return;
     const choices = this._followChoices();
@@ -911,9 +933,8 @@ class HcDialCard extends HTMLElement {
     const name = (id) => this._hass.states[id]?.attributes?.friendly_name || id;
     const items = [[null, this._t("menuDefault")], ["none", this._t("menuNone")], ...choices.map((id) => [id, name(id)])];
     const m = this._$("menu");
-    m.innerHTML = `<div class="mt">${this._t("menuTitle")}</div>` +
-      items.map(([v, n]) => `<button class="mi${(v ?? null) === (cur ?? null) ? " sel" : ""}" data-v="${v ?? ""}">${n.replace(/[<>&]/g, "")}</button>`).join("") +
-      `<button class="mi close" data-close="1">${this._t("menuClose")}</button>`;
+    this._menuFill(m, this._t("menuTitle"), "",
+      items.map(([v, n]) => ({ cls: `mi${(v ?? null) === (cur ?? null) ? " sel" : ""}`, data: { v: v ?? "" }, text: n })));
     m.classList.remove("pm", "tl");
     this._mode = "menu";
     this._menuKind = "device";
@@ -945,13 +966,11 @@ class HcDialCard extends HTMLElement {
     const a = st.attributes, ends = a.preset_end_preview || {};
     const name = (p) => this._t("presets")[p] || p;
     const m = this._$("menu");
-    m.innerHTML = `<div class="mt">${this._t("presetTitle")}</div>` +
+    this._menuFill(m, this._t("presetTitle"), "",
       a.preset_modes.map((p) => {
         const end = p === a.preset_mode ? "" : this._presetEnd(ends[p]);
-        const clean = (s) => String(s).replace(/[<>&]/g, "");
-        return `<button class="mi${p === a.preset_mode ? " sel" : ""}" data-v="${p}">${clean(name(p))}${end ? `<small>${clean(end)}</small>` : ""}</button>`;
-      }).join("") +
-      `<button class="mi close" data-close="1">${this._t("menuClose")}</button>`;
+        return { cls: `mi${p === a.preset_mode ? " sel" : ""}`, data: { v: p }, text: name(p), ...(end ? { small: end } : {}) };
+      }));
     m.classList.remove("tl");
     m.classList.add("pm");
     this._mode = "menu";
@@ -1031,16 +1050,14 @@ class HcDialCard extends HTMLElement {
     if (this._mode !== "view") return;
     const h = this._hass;
     const ids = Object.keys(h.states).filter((id) => id.startsWith("climate.") && h.states[id].state !== "unavailable");
-    const clean = (v) => String(v ?? "").replace(/[<>&"]/g, "");
     const name = (id) => h.states[id].attributes.friendly_name || id;
     ids.sort((a, b) => (this._onCard(b) - this._onCard(a)) || name(a).localeCompare(name(b)));
     const m = this._$("menu");
-    m.innerHTML = `<div class="mt">${this._t("listTitle")}<small>${this._t("listHint")}</small></div>` +
+    this._menuFill(m, this._t("listTitle"), this._t("listHint"),
       ids.map((id) => {
         const info = [id === this._base.entity ? this._t("listMain") : "", this._entityArea(id), this._thermTag(id)].filter(Boolean).join(" · ");
-        return `<button class="mi${this._onCard(id) ? " on" : ""}${id === this._thSel ? " sel" : ""}" data-e="${clean(id)}">${clean(name(id))}<small>${clean(info) || "&nbsp;"}</small></button>`;
-      }).join("") +
-      `<button class="mi close" data-close="1">${this._t("menuClose")}</button>`;
+        return { cls: `mi${this._onCard(id) ? " on" : ""}${id === this._thSel ? " sel" : ""}`, data: { e: id }, text: String(name(id)), small: info || "\u00a0" };
+      }));
     m.classList.remove("pm");
     m.classList.add("tl");
     this._mode = "menu";

@@ -1,3 +1,5 @@
+<p align="center"><img src="images/icon.png" alt="HC Dial Card icon" width="128"></p>
+
 # HC Dial Card
 
 **English** · [Magyar](README.hu.md)
@@ -36,7 +38,14 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 
 ## Installation
 
+### HACS (recommended)
+
+1. Open HACS and search for **HC Dial Card**.
+2. Download it and reload the browser.
+
 ### HACS (custom repository)
+
+If the search doesn't find it (while it is waiting to be added to the HACS default list, or on an older HACS):
 
 1. HACS → ⋮ → *Custom repositories* → add `https://github.com/Gyuszko55/hc-dial-card`, type **Dashboard**.
 2. Install **HC Dial Card** and reload the browser.

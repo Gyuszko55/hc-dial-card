@@ -1,3 +1,5 @@
+<p align="center"><img src="images/icon.png" alt="HC Dial Card ikon" width="128"></p>
+
 # HC Dial Card
 
 [English](README.md) · **Magyar**
@@ -36,7 +38,14 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
 
 ## Telepítés
 
+### HACS (ajánlott)
+
+1. Nyisd meg a HACS-ot, és keress rá: **HC Dial Card**.
+2. Töltsd le, és töltsd újra a böngészőt.
+
 ### HACS (egyedi tároló)
+
+Ha a keresés nem találja (amíg a HACS alaplistájába való felvételre vár, vagy régebbi HACS-nál):
 
 1. HACS → ⋮ → *Custom repositories* → `https://github.com/Gyuszko55/hc-dial-card`, típus: **Dashboard**.
 2. Telepítsd a **HC Dial Card**-ot, és töltsd újra a böngészőt.
