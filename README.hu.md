@@ -186,6 +186,7 @@ A „YAML” jelű mezők kis objektumok: `{kulcs: érték}` formában vagy soro
 | Kijelző | dupla koppintás | következő termosztát (ha több van) – lásd `tap_action` |
 | Kijelző | rövid koppintás | részletek (ha egy termosztát van) |
 | Termosztát ikon (nézet, admin) | koppintás | termosztát-lista: koppintás kijelöl, hosszú nyomás hozzáad / levesz |
+| Info ikon (nézet, admin, HC Thermostat) | koppintás | megnyitja a mutatott termosztát HC info paneljét |
 | Gyűrű (SET) | körbe húzás | a cél állítása |
 | Kijelző (SET, tartomány) | rövid koppintás | váltás a fűtési / hűtési cél között |
 | Bekapcsoló gomb (SET) | koppintás | be / ki |
@@ -207,6 +208,7 @@ Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szók�
 | `decision` | – | HC Thermostat döntés-szenzor (igény-sávok, ablak) |
 | `tap_action` | `auto` | `auto` (több termosztát: dupla koppintás vált, egy: koppintás = részletek), `more-info`, `cycle`, `none` |
 | `manage` | true | termosztát ikon adminoknak: felismert termosztátok és TRV-k listája, hosszú nyomással hozzáadás / levétel |
+| `info` | true | „i” ikon adminoknak HC Thermostat entitásoknál: megnyitja a mutatott termosztát HC info paneljét (HC Thermostat 0.34+) |
 | `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
 | `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
 | `preset_menu` | true | a preset ikonra koppintva preset-menü nyílik |

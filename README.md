@@ -186,6 +186,7 @@ Fields marked YAML are small objects: type them as `{key: value}` or as one `key
 | Display | double tap | next thermostat (several) – see `tap_action` |
 | Display | short tap | more-info (one thermostat) |
 | Thermostat icon (view, admin) | tap | thermostat list: tap selects, long press adds / removes |
+| Info icon (view, admin, HC Thermostat) | tap | opens the HC info panel of the thermostat shown |
 | Ring (SET) | drag around | change the target |
 | Display (SET, range) | short tap | switch heating / cooling target |
 | Power button (SET) | tap | on / off |
@@ -207,6 +208,7 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `decision` | – | HC Thermostat decision sensor (demand bars, window) |
 | `tap_action` | `auto` | `auto` (several thermostats: double tap cycles, one: tap = more-info), `more-info`, `cycle`, `none` |
 | `manage` | true | thermostat icon for admins: list of recognised thermostats and TRVs, long press adds / removes |
+| `info` | true | "i" icon for admins on HC Thermostat entities: opens the HC info panel (HC Thermostat 0.34+) of the thermostat shown |
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
 | `preset_menu` | true | tap on the preset icon opens the preset menu |

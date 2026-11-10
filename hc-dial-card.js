@@ -45,6 +45,8 @@
  *                                         more-info | cycle (double tap) | none)
  *   manage: true                         (thermostat icon for admins: list the recognised thermostats / TRVs, long press
  *                                         adds or removes one – saved into this card's rooms on the dashboard)
+ *   info: true                           (HC Thermostat entities, admins: an "i" icon opens the HC info panel of the
+ *                                         thermostat shown – every input, output, inner value and setting, drawn)
  *   switch_back: 10                      (s; after picking another thermostat by double tap, return to the room's one)
  *   away_hold: 60                        (s; phone not seen for this long → main thermostat)
  *   timeout: 15                          (s)
@@ -59,7 +61,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.13.1";
+const HC_DIAL_VERSION = "1.14.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -116,7 +118,7 @@ const STR = {
     hintRange: "Gyűrű: állít · koppintás: fűt/hűt · gomb: be/ki · hosszan: rögzít",
     hint: "Gyűrű: állít · gomb: be/ki · hosszan: rögzít",
     menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
-    listTitle: "Termosztátok a kártyán", listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz", listMain: "fő",
+    info: "HC info: minden adat", listTitle: "Termosztátok a kártyán", listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz", listMain: "fő",
     listAdded: "Hozzáadva", listRemoved: "Levéve", listMainFixed: "A fő termosztát marad", listError: "Nem menthető (YAML?)",
     presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ",
     presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
@@ -129,14 +131,14 @@ const STR = {
     hintRange: "Ring: adjust · tap: heat/cool · button: on/off · long press: save",
     hint: "Ring: adjust · button: on/off · long press: save",
     menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
-    listTitle: "Thermostats on the card", listHint: "tap: select · long press: add / remove", listMain: "main",
+    info: "HC info: every value", listTitle: "Thermostats on the card", listHint: "tap: select · long press: add / remove", listMain: "main",
     listAdded: "Added", listRemoved: "Removed", listMainFixed: "The main thermostat stays", listError: "Cannot save (YAML?)",
     presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT",
     presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
       home: "Home", boost: "Boost", activity: "Activity", auto: "Auto", none: "None" },
   },
   de: {
-    days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
+    info: "HC-Info: alle Werte", days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
     heat: "HEIZEN", cool: "KÜHLEN", unavailable: "Nicht verfügbar", saved: "Gespeichert", unchanged: "Unverändert",
     error: "Fehler – nicht gespeichert", shadow: "Schattenmodus: schaltet nicht",
     hintRange: "Ring: einstellen · Tippen: Heizen/Kühlen · Taste: Ein/Aus · lange drücken: speichern",
@@ -579,6 +581,8 @@ class HcDialCard extends HTMLElement {
         .lock { left:19%; top:72%; color:#3d8bfd; }
         .shadowm { left:83%; top:63%; color:#3bb54a; }
         .tlist { left:81%; top:72%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
+        .hcinfo { left:17%; top:61%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
+        .dev.set .hcinfo { display:none !important; }
         .dev.set .tlist { display:none !important; }
         .dev.menuopen .menu.tl { justify-content:flex-start; padding:17% 15% 14%; gap:calc(.9 * var(--cq)); }
         .menu.tl .mt small { display:block; font-size:calc(2.3 * var(--cqf)); color:#888; margin-top:calc(.4 * var(--cq)); text-align:center; }
@@ -669,6 +673,7 @@ class HcDialCard extends HTMLElement {
             <div class="abs lock" id="lock"><ha-icon id="locki" icon="mdi:lock"></ha-icon></div>
             <div class="abs shadowm" id="shadowm"><ha-icon icon="mdi:eye-outline"></ha-icon></div>
             <div class="abs tlist" id="tlist"><ha-icon icon="mdi:thermostat"></ha-icon></div>
+            <div class="abs hcinfo" id="hcinfo"><ha-icon icon="mdi:information-outline"></ha-icon></div>
             <div class="abs pwr" id="pwr"><ha-icon icon="mdi:power"></ha-icon><span id="pwrt"></span></div>
             <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span></div>
             <div class="abs hint" id="hint"></div>
@@ -737,6 +742,7 @@ class HcDialCard extends HTMLElement {
       clearTimeout(this._backT);
       this._onPreset = e.composedPath().some((el) => el.id === "eco");
       this._onList = e.composedPath().some((el) => el.id === "tlist");
+      this._onInfo = e.composedPath().some((el) => el.id === "hcinfo");
       t0 = performance.now(); x0 = e.clientX; y0 = e.clientY; armed = true;
       dev.classList.add("pressing");
       raf = requestAnimationFrame(anim);
@@ -751,6 +757,7 @@ class HcDialCard extends HTMLElement {
       if (tap && this._mode === "set" && this._vals && Object.keys(this._vals).length > 1) this._toggleField();
       else if (tap && this._mode === "view" && this._onPreset && this._presetMenuOk()) this._openPresetMenu();
       else if (tap && this._mode === "view" && this._onList && this._manageOk()) this._openThermMenu();
+      else if (tap && this._mode === "view" && this._onInfo && this._infoOk()) this._openInfo();
       else if (tap && this._mode === "view") this._tap();
       else if (this._mode === "view") this._armBack();
     });
@@ -1024,6 +1031,15 @@ class HcDialCard extends HTMLElement {
     return "";
   }
   /* ---------- thermostat list: add / remove thermostats of this card ---------- */
+  // HC info panel (HC Thermostat 0.34+, admins): every input, output, inner value and setting of the thermostat shown
+  _infoOk() {
+    const a = this._st(this._cfg?.entity)?.attributes || {};
+    return this._base.info !== false && !!this._hass?.user?.is_admin && a.hc_mode !== undefined;
+  }
+  _openInfo() {
+    history.pushState(null, "", `/hc-info?entity=${encodeURIComponent(this._cfg.entity)}`);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+  }
   _manageOk() {
     return this._base.manage !== false && !!this._hass?.user?.is_admin;
   }
@@ -1366,6 +1382,8 @@ class HcDialCard extends HTMLElement {
     $("shadowm").title = this._t("shadow");
     $("tlist").style.display = this._manageOk() ? "" : "none";
     $("tlist").title = this._t("listTitle");
+    $("hcinfo").style.display = this._infoOk() ? "" : "none";
+    $("hcinfo").title = this._t("info");
 
     // main numbers
     const curT = parseFloat(a.current_temperature);
