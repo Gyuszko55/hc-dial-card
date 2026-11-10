@@ -1,6 +1,4 @@
-<p align="center"><img src="images/icon.png" alt="HC Dial Card ikon" width="128"></p>
-
-# HC Dial Card
+# <img src="images/icon.png" alt="HC Dial Card ikon" width="44" align="absmiddle"> HC Dial Card
 
 [English](README.md) · **Magyar**
 
