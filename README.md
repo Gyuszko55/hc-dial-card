@@ -1,4 +1,4 @@
-# HC Dial Card
+# <img src="images/icon.png" alt="HC Dial Card icon" width="44" align="absmiddle"> HC Dial Card
 
 **English** · [Magyar](README.hu.md)
 
@@ -11,18 +11,39 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
 
 ## Features
 
-- **Safe setting.** Long-press the display to enter SET mode, turn the knurled ring (or use the mouse wheel / arrow keys) and long-press again to save. Nothing is sent while you turn; after 15 seconds without touch the card leaves SET mode without saving.
+- **Safe setting.** Long-press the display to enter SET mode (the thermostat's name and area at the top, so you see which one you set), turn the knurled ring (or use the mouse wheel / arrow keys) and long-press again to save. Nothing is sent while you turn; after 15 seconds without touch the card leaves SET mode without saving.
 - **Any climate entity.** Single target (`temperature`) or range (`target_temp_low` / `target_temp_high`): in SET mode a short tap switches between the heating and the cooling target. The card reads `supported_features`, so it only offers what the thermostat can do.
 - **On / off.** A power button in SET mode; saved with the same long press. Uses `climate.turn_on` / `climate.turn_off` when supported, so the thermostat returns to its own previous mode.
 - **Status at a glance.** Room temperature, target, weather, outdoor temperature, humidity, HVAC mode, current action (heating, cooling, preheating, defrosting, drying, fan), preset icon (eco = leaf, sleep = bed …), open window, availability.
 - **Room following (optional).** With a room-presence sensor (Bermuda, ESPresense, Wi-Fi BSSID …) the card switches to the thermostat of the room you are in. Several thermostats in one room (e.g. a TRV and an air conditioner): the one that is switched on wins.
+- **Add thermostats without code.** Tap the thermostat icon (admins only): the card lists the recognised thermostats and TRVs; tap selects, long press adds or removes. A new one goes into `rooms` under its HA area (a TRV with `trv: true`); the card saves itself to the dashboard (not possible on a YAML-mode dashboard). Double tap cycles between the thermostats; a tap outside the ring closes an open menu at once and brings back the main thermostat.
+- **Own font.** The card uses Home Assistant's bundled Roboto under a name of its own, so a replaced phone system font (Samsung, Xiaomi …) cannot swap it; the phone's enlarged text size is measured and divided out, so the layout stays intact.
+- **Preset menu.** Tap the preset icon to choose a preset (comfort, eco, away …). With HC Thermostat each line also tells how long the preset lasts ("until 22:00", "until someone is home").
+- **Control type.** At the top left the card shows what regulates; the preset icon sits in front of the temperature.
+
+  | Thermostat | Shown |
+  |---|---|
+  | HC Thermostat | TPI, PID, EXT (external thermostat) |
+  | Generic thermostat (on/off with hysteresis) | HIST |
+  | Smart Thermostat | PID, or HIST when its PID is off |
+  | SAT (Smart Autotune Thermostat) | SAT·PWM (on/off boiler), SAT·OT (modulating via OpenTherm) |
+  | Better Thermostat | BT, BT·PID, BT·MPC (by its calibration) |
+  | Versatile Thermostat | TPI, AUTO-TPI (learning), VT·REG (over a climate with self-regulation), VT |
+  | OpenTherm Gateway, ebusd | OT, eBUS |
 - **Per-device choice.** Long-press the outer ring to choose which beacon *this* device follows (or none). Stored in the browser of that device.
 - **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian and German.
 - **Visual editor**, keyboard control and screen-reader labels.
 
 ## Installation
 
+### HACS (recommended)
+
+1. Open HACS and search for **HC Dial Card**.
+2. Download it and reload the browser.
+
 ### HACS (custom repository)
+
+If the search doesn't find it (while it is waiting to be added to the HACS default list, or on an older HACS):
 
 1. HACS → ⋮ → *Custom repositories* → add `https://github.com/Gyuszko55/hc-dial-card`, type **Dashboard**.
 2. Install **HC Dial Card** and reload the browser.
@@ -55,6 +76,15 @@ weather: weather.home
 outdoor: sensor.outdoor_temperature
 humidity: sensor.living_room_humidity
 heating: binary_sensor.boiler_burning   # optional: real burner state for the flame
+power: sensor.ac_power                  # optional: power draw (W); the three steps are thirds of power_max
+power_max: 1800                         # optional, default 1800 W (power_idle: 40 W = standing)
+                                        # without power: the thermostat's demand (HC Thermostat, Versatile
+                                        # power_percent, Smart Thermostat control_output): ≤10 % one step,
+                                        # ≤30 % two, above three; else all three while heating
+heat_type: auto                         # optional: icon of the heat – gas_boiler (rising red heat; flame while burning), floor,
+                                        # radiator, heat_pump, air_conditioner (sun-snowflake, orange heating / blue cooling; fan while running), electric,
+                                        # stove, district, solar, flame; auto = the thermostat's heat_type
+                                        # attribute (HC Thermostat), else air_conditioner if it can cool
 window: [binary_sensor.living_window]
 ```
 
@@ -124,6 +154,7 @@ Add the card from the dashboard editor (**Add card → HC Dial Card**) or open a
 | Actual heating sensor | a binary sensor that is `on` while the burner or compressor really runs (flame / snowflake icon) |
 | Window/door sensors | one or more binary sensors; an open one shows the window icon |
 | Tap action | `auto`, `more-info`, `cycle` or `none` |
+| Control type label / Preset menu | `auto`, own text or `false` / on-off |
 | SET timeout / Switch back | seconds before SET mode closes without saving / before a manually chosen thermostat returns to the room's one |
 
 **Room following (optional)** is a collapsed section at the bottom:
@@ -152,13 +183,17 @@ Fields marked YAML are small objects: type them as `{key: value}` or as one `key
 | Where | Gesture | Action |
 |---|---|---|
 | Display | long press | enter SET / save |
-| Display | short tap | next thermostat (several) or more-info (one) – see `tap_action` |
+| Display | double tap | next thermostat (several) – see `tap_action` |
+| Display | short tap | more-info (one thermostat) |
+| Thermostat icon (view, admin) | tap | thermostat list: tap selects, long press adds / removes |
+| Info icon (view, admin, HC Thermostat) | tap | opens the HC info panel of the thermostat shown |
 | Ring (SET) | drag around | change the target |
 | Display (SET, range) | short tap | switch heating / cooling target |
 | Power button (SET) | tap | on / off |
 | Ring (view) | long press | device menu: which beacon this device follows |
+| Preset icon (view) | tap | preset menu |
 
-Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooling target, P = on/off, M = device menu.
+Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooling target, P = on/off, M = device menu, S = preset menu.
 
 ## Options
 
@@ -171,9 +206,13 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `heating` | – | binary sensor for the real burner/compressor state |
 | `window` | entity `window_open`/`door_open` | binary sensor(s) for open windows |
 | `decision` | – | HC Thermostat decision sensor (demand bars, window) |
-| `tap_action` | `auto` | `auto`, `more-info`, `cycle`, `none` |
+| `tap_action` | `auto` | `auto` (several thermostats: double tap cycles, one: tap = more-info), `more-info`, `cycle`, `none` |
+| `manage` | true | thermostat icon for admins: list of recognised thermostats and TRVs, long press adds / removes |
+| `info` | true | "i" icon for admins on HC Thermostat entities: opens the HC info panel (HC Thermostat 0.34+) of the thermostat shown |
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
+| `preset_menu` | true | tap on the preset icon opens the preset menu |
+| `control` | `auto` | control type at the top left: `auto`, your own text, or `false` |
 | `follow` | – | room sensor, or `{user name or id: sensor}` |
 | `follow_app_only` | false | follow only inside the Companion app |
 | `follow_choices` | – | extra sensors for the device menu (Bermuda area sensors are found automatically) |

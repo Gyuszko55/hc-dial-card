@@ -76,40 +76,15 @@ const MODE_ICON = {
 // a thermostat that can cool is an air conditioner, anything else a boiler.
 const HEAT_TYPE = {
   // mode: the mode dot (what kind of heat), run: the second icon (what is working now)
-  gas_boiler: {
-    mode: ["mdi:heat-wave", "#ff3b30"],
-    run: ["mdi:fire", "#ff8a1f"],
-  },
-  floor: {
-    mode: ["mdi:heating-coil", "#ff5a1f"],
-    run: ["mdi:fire", "#ff8a1f"],
-  },
-  radiator: {
-    mode: ["mdi:radiator", "#ff5a1f"],
-    run: ["mdi:valve-open", "#ff8a1f"],
-  },
-  heat_pump: {
-    mode: ["mdi:heat-pump", "#ff7a1a"],
-    run: ["mdi:fan", "#ff8a1f"],
-    cool: ["mdi:heat-pump", "#2f8cff"],
-    coolRun: ["mdi:fan", "#4fb3ff"],
-  },
-  air_conditioner: {
-    mode: ["mdi:sun-snowflake-variant", "#ff7a1a"],
-    run: ["mdi:fan", "#ff8a1f"],
-    cool: ["mdi:sun-snowflake-variant", "#2f8cff"],
-    coolRun: ["mdi:fan", "#4fb3ff"],
-  },
+  gas_boiler: { mode: ["mdi:heat-wave", "#ff3b30"], run: ["mdi:fire", "#ff8a1f"] },
+  floor: { mode: ["mdi:heating-coil", "#ff5a1f"], run: ["mdi:fire", "#ff8a1f"] },
+  radiator: { mode: ["mdi:radiator", "#ff5a1f"], run: ["mdi:valve-open", "#ff8a1f"] },
+  heat_pump: { mode: ["mdi:heat-pump", "#ff7a1a"], run: ["mdi:fan", "#ff8a1f"], cool: ["mdi:heat-pump", "#2f8cff"], coolRun: ["mdi:fan", "#4fb3ff"] },
+  air_conditioner: { mode: ["mdi:sun-snowflake-variant", "#ff7a1a"], run: ["mdi:fan", "#ff8a1f"], cool: ["mdi:sun-snowflake-variant", "#2f8cff"], coolRun: ["mdi:fan", "#4fb3ff"] },
   electric: { mode: ["mdi:flash", "#ffb300"], run: ["mdi:flash", "#ffb300"] },
   stove: { mode: ["mdi:fireplace", "#ff5a1f"], run: ["mdi:fire", "#ff8a1f"] },
-  district: {
-    mode: ["mdi:water-thermometer", "#ff3b30"],
-    run: ["mdi:pump", "#ff8a1f"],
-  },
-  solar: {
-    mode: ["mdi:solar-power-variant", "#ffb300"],
-    run: ["mdi:pump", "#ffb300"],
-  },
+  district: { mode: ["mdi:water-thermometer", "#ff3b30"], run: ["mdi:pump", "#ff8a1f"] },
+  solar: { mode: ["mdi:solar-power-variant", "#ffb300"], run: ["mdi:pump", "#ffb300"] },
   flame: { mode: ["mdi:fire", "#ff7a1a"], run: ["mdi:fire", "#ff8a1f"] },
 };
 const HEAT_TYPES = ["auto", ...Object.keys(HEAT_TYPE)];
@@ -125,11 +100,7 @@ const ACTION_ICON = {
 const pOffAria = (c) =>
   c._pOn === false ? c._t("off") : `${c._fmt(c._pending)} ${c._unit()}`;
 // ClimateEntityFeature
-const F_TEMP = 1,
-  F_RANGE = 2,
-  F_PRESET = 16,
-  F_OFF = 128,
-  F_ON = 256;
+const F_TEMP = 1, F_RANGE = 2, F_PRESET = 16, F_OFF = 128, F_ON = 256;
 // accent-, case- and separator-insensitive comparison
 const norm = (v) =>
   String(v ?? "")
@@ -188,36 +159,12 @@ const STR = {
     hintRange:
       "Gyűrű: állít · koppintás: fűt/hűt · gomb: be/ki · hosszan: rögzít",
     hint: "Gyűrű: állít · gomb: be/ki · hosszan: rögzít",
-    menuTitle: "Ez a készülék követi:",
-    menuDefault: "Alapbeállítás",
-    menuNone: "Nem követ",
-    menuClose: "Bezár",
-    info: "HC info: minden adat",
-    listTitle: "Termosztátok a kártyán",
-    listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz",
-    listMain: "fő",
-    listAdded: "Hozzáadva",
-    listRemoved: "Levéve",
-    listMainFixed: "A fő termosztát marad",
-    listError: "Nem menthető (YAML?)",
-    presetTitle: "Beállítás:",
-    until: "{t}-ig",
-    endHome: "hazaérkezésig",
-    endOnce: "egyszeri",
-    ext: "KÜLSŐ",
-    presets: {
-      eco: "Eco",
-      away: "Távol",
-      vacation: "Szabadság",
-      sleep: "Alvás",
-      night: "Éjszaka",
-      comfort: "Komfort",
-      home: "Otthon",
-      boost: "Gyors felfűtés",
-      activity: "Aktivitás",
-      auto: "Auto",
-      none: "Nincs",
-    },
+    menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
+    info: "HC info: minden adat", listTitle: "Termosztátok a kártyán", listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz", listMain: "fő",
+    listAdded: "Hozzáadva", listRemoved: "Levéve", listMainFixed: "A fő termosztát marad", listError: "Nem menthető (YAML?)",
+    presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ",
+    presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
+      home: "Otthon", boost: "Gyors felfűtés", activity: "Aktivitás", auto: "Auto", none: "Nincs" },
   },
   en: {
     days: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
@@ -403,23 +350,33 @@ const STR = {
       auto: "Auto",
       none: "Nema",
     },
+    menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
+    info: "HC info: every value", listTitle: "Thermostats on the card", listHint: "tap: select · long press: add / remove", listMain: "main",
+    listAdded: "Added", listRemoved: "Removed", listMainFixed: "The main thermostat stays", listError: "Cannot save (YAML?)",
+    presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT",
+    presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
+      home: "Home", boost: "Boost", activity: "Activity", auto: "Auto", none: "None" },
+  },
+  de: {
+    info: "HC-Info: alle Werte", days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
+    heat: "HEIZEN", cool: "KÜHLEN", unavailable: "Nicht verfügbar", saved: "Gespeichert", unchanged: "Unverändert",
+    error: "Fehler – nicht gespeichert", shadow: "Schattenmodus: schaltet nicht",
+    hintRange: "Ring: einstellen · Tippen: Heizen/Kühlen · Taste: Ein/Aus · lange drücken: speichern",
+    hint: "Ring: einstellen · Taste: Ein/Aus · lange drücken: speichern",
+    menuTitle: "Dieses Gerät folgt:", menuDefault: "Standard", menuNone: "Nicht folgen", menuClose: "Schließen",
+    presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN",
+    presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
+      home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto", none: "Keine" },
   },
 };
 const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
 
 class HcDialCard extends HTMLElement {
   setConfig(config) {
-    if (!config || !config.entity)
-      throw new Error("entity is required (climate.*)");
+    if (!config || !config.entity) throw new Error("entity is required (climate.*)");
     const reopen = this._mode === "menu" && this._menuKind === "therm"; // saved from the list: keep it open
     this._orig = config;
-    this._base = {
-      timeout: 15,
-      step_angle: 18,
-      preset_menu: true,
-      control: "auto",
-      ...config,
-    };
+    this._base = { timeout: 15, step_angle: 18, preset_menu: true, control: "auto", ...config };
     this._cand = null; // null = main thermostat
     this._sig = "";
     this._cfg = this._merge(null);
@@ -460,17 +417,9 @@ class HcDialCard extends HTMLElement {
   _reopenAfterSave() {
     this._reopenChecked = true;
     let r = null;
-    try {
-      r = JSON.parse(sessionStorage.getItem("hc-dial-card:reopen") || "null");
-    } catch (e) {
-      /* no storage */
-    }
+    try { r = JSON.parse(sessionStorage.getItem("hc-dial-card:reopen") || "null"); } catch (e) { /* no storage */ }
     if (!r || r.e !== this._base.entity || Date.now() - r.t > 15000) return;
-    try {
-      sessionStorage.removeItem("hc-dial-card:reopen");
-    } catch (e) {
-      /* no storage */
-    }
+    try { sessionStorage.removeItem("hc-dial-card:reopen"); } catch (e) { /* no storage */ }
     setTimeout(() => {
       if (!this.isConnected || this._mode !== "view") return;
       this._thSel = r.sel;
@@ -681,19 +630,10 @@ class HcDialCard extends HTMLElement {
     if (ta === "cycle" || (ta === "auto" && many)) {
       // double tap: a single tap does nothing, so a stray touch never switches the thermostat
       const now = performance.now();
-      if (now - (this._lastTap || 0) < 400) {
-        this._lastTap = 0;
-        this._cycle();
-      } else this._lastTap = now;
+      if (now - (this._lastTap || 0) < 400) { this._lastTap = 0; this._cycle(); } else this._lastTap = now;
       return;
     }
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: this._cfg.entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: this._cfg.entity }, bubbles: true, composed: true }));
   }
   _cycle() {
     const list = this._all();
@@ -754,21 +694,10 @@ class HcDialCard extends HTMLElement {
     if (!this._outside) {
       this._outside = (e) => {
         if (!this.shadowRoot) return;
-        const ring = this._$("ring"),
-          disp = this._$("disp"),
-          menu = this._$("menu");
-        if (
-          e
-            .composedPath()
-            .some((el) => el === ring || el === disp || el === menu)
-        )
-          return;
+        const ring = this._$("ring"), disp = this._$("disp"), menu = this._$("menu");
+        if (e.composedPath().some((el) => el === ring || el === disp || el === menu)) return;
         if (this._mode === "menu") this._closeMenu();
-        if (
-          this._mode === "view" &&
-          this._override !== undefined &&
-          this._override !== false
-        ) {
+        if (this._mode === "view" && this._override !== undefined && this._override !== false) {
           clearTimeout(this._backT);
           this._override = false;
           this._sig = "\u0000";
@@ -784,8 +713,7 @@ class HcDialCard extends HTMLElement {
   }
 
   disconnectedCallback() {
-    if (this._outside)
-      document.removeEventListener("pointerdown", this._outside, true);
+    if (this._outside) document.removeEventListener("pointerdown", this._outside, true);
     clearInterval(this._clock);
     if (this._mode === "menu") {
       this._$("dev").classList.remove("menuopen");
@@ -868,36 +796,23 @@ class HcDialCard extends HTMLElement {
     if (document.getElementById("hc-dial-card-fonts")) return;
     const st = document.createElement("style");
     st.id = "hc-dial-card-fonts";
-    st.textContent = [
-      [300, "Light"],
-      [400, "Regular"],
-      [500, "Medium"],
-      [700, "Bold"],
-    ]
-      .map(
-        ([w, n]) =>
-          `@font-face{font-family:"HC Dial Roboto";font-style:normal;font-weight:${w};font-display:swap;src:url("/static/fonts/roboto/Roboto-${n}.woff2") format("woff2");}`,
-      )
-      .join("");
+    st.textContent = [[300, "Light"], [400, "Regular"], [500, "Medium"], [700, "Bold"]].map(([w, n]) =>
+      `@font-face{font-family:"HC Dial Roboto";font-style:normal;font-weight:${w};font-display:swap;src:url("/static/fonts/roboto/Roboto-${n}.woff2") format("woff2");}`).join("");
     document.head.appendChild(st);
   }
   // Android text zoom (system font size) scales every font size; measure it and divide it out
   _fontZoom() {
     try {
       const probe = document.createElement("span");
-      probe.style.cssText =
-        "position:absolute;visibility:hidden;font-size:100px;line-height:1";
+      probe.style.cssText = "position:absolute;visibility:hidden;font-size:100px;line-height:1";
       probe.textContent = "0";
       this.shadowRoot.appendChild(probe);
       const z = parseFloat(getComputedStyle(probe).fontSize) / 100;
       probe.remove();
       const dev = this._$("dev");
-      if (Number.isFinite(z) && z > 0.5 && z < 3 && Math.abs(z - 1) > 0.02)
-        dev.style.setProperty("--fzoom", z.toFixed(3));
+      if (Number.isFinite(z) && z > 0.5 && z < 3 && Math.abs(z - 1) > 0.02) dev.style.setProperty("--fzoom", z.toFixed(3));
       else dev.style.removeProperty("--fzoom");
-    } catch (e) {
-      /* keep 1 */
-    }
+    } catch (e) { /* keep 1 */ }
   }
   _build() {
     HcDialCard._fonts();
@@ -1102,16 +1017,9 @@ class HcDialCard extends HTMLElement {
       const bt = e.target.closest("button");
       if (!bt) return;
       if (this._menuKind === "therm" && !bt.dataset.close) {
-        if (this._thHeld) {
-          this._thHeld = false;
-          return;
-        }
+        if (this._thHeld) { this._thHeld = false; return; }
         this._thSel = bt.dataset.e;
-        this._$("menu")
-          .querySelectorAll("button[data-e]")
-          .forEach((b) =>
-            b.classList.toggle("sel", b.dataset.e === this._thSel),
-          );
+        this._$("menu").querySelectorAll("button[data-e]").forEach((b) => b.classList.toggle("sel", b.dataset.e === this._thSel));
         return;
       }
       if (!bt.dataset.close) {
@@ -1164,10 +1072,7 @@ class HcDialCard extends HTMLElement {
       this._onPreset = e.composedPath().some((el) => el.id === "eco");
       this._onList = e.composedPath().some((el) => el.id === "tlist");
       this._onInfo = e.composedPath().some((el) => el.id === "hcinfo");
-      t0 = performance.now();
-      x0 = e.clientX;
-      y0 = e.clientY;
-      armed = true;
+      t0 = performance.now(); x0 = e.clientX; y0 = e.clientY; armed = true;
       dev.classList.add("pressing");
       raf = requestAnimationFrame(anim);
       timer = setTimeout(() => {
@@ -1181,24 +1086,10 @@ class HcDialCard extends HTMLElement {
     disp.addEventListener("pointerup", () => {
       const tap = armed && performance.now() - t0 < 350;
       stop();
-      if (
-        tap &&
-        this._mode === "set" &&
-        this._vals &&
-        Object.keys(this._vals).length > 1
-      )
-        this._toggleField();
-      else if (
-        tap &&
-        this._mode === "view" &&
-        this._onPreset &&
-        this._presetMenuOk()
-      )
-        this._openPresetMenu();
-      else if (tap && this._mode === "view" && this._onList && this._manageOk())
-        this._openThermMenu();
-      else if (tap && this._mode === "view" && this._onInfo && this._infoOk())
-        this._openInfo();
+      if (tap && this._mode === "set" && this._vals && Object.keys(this._vals).length > 1) this._toggleField();
+      else if (tap && this._mode === "view" && this._onPreset && this._presetMenuOk()) this._openPresetMenu();
+      else if (tap && this._mode === "view" && this._onList && this._manageOk()) this._openThermMenu();
+      else if (tap && this._mode === "view" && this._onInfo && this._infoOk()) this._openInfo();
       else if (tap && this._mode === "view") this._tap();
       else if (this._mode === "view") this._armBack();
     });
@@ -1402,23 +1293,11 @@ class HcDialCard extends HTMLElement {
         return;
       }
       if (this._mode === "view") {
-        if (k === "Enter") {
-          e.preventDefault();
-          this._onLong();
-        } else if (k === "ArrowRight" || k === "ArrowLeft") {
-          e.preventDefault();
-          if (this._all().length > 1) this._cycle();
-          else this._tap();
-        } else if ((k === "t" || k === "T") && this._manageOk()) {
-          e.preventDefault();
-          this._openThermMenu();
-        } else if (k === "m" || k === "M") {
-          e.preventDefault();
-          this._openMenu();
-        } else if ((k === "s" || k === "S") && this._presetMenuOk()) {
-          e.preventDefault();
-          this._openPresetMenu();
-        }
+        if (k === "Enter") { e.preventDefault(); this._onLong(); }
+        else if (k === "ArrowRight" || k === "ArrowLeft") { e.preventDefault(); if (this._all().length > 1) this._cycle(); else this._tap(); }
+        else if ((k === "t" || k === "T") && this._manageOk()) { e.preventDefault(); this._openThermMenu(); }
+        else if (k === "m" || k === "M") { e.preventDefault(); this._openMenu(); }
+        else if ((k === "s" || k === "S") && this._presetMenuOk()) { e.preventDefault(); this._openPresetMenu(); }
         return;
       }
       if (this._mode !== "set") return;
@@ -1458,8 +1337,7 @@ class HcDialCard extends HTMLElement {
     m.replaceChildren(t);
     for (const r of rows) {
       const b = el("button", r.cls, r.text);
-      for (const [k, v] of Object.entries(r.data || {}))
-        b.dataset[k] = String(v);
+      for (const [k, v] of Object.entries(r.data || {})) b.dataset[k] = String(v);
       if (r.small !== undefined) b.append(el("small", "", r.small));
       m.append(b);
     }
@@ -1534,26 +1412,250 @@ class HcDialCard extends HTMLElement {
       ends = a.preset_end_preview || {};
     const name = (p) => this._t("presets")[p] || p;
     const m = this._$("menu");
-    this._menuFill(
-      m,
-      this._t("presetTitle"),
-      "",
+    this._menuFill(m, this._t("menuTitle"), "",
+      items.map(([v, n]) => ({ cls: `mi${(v ?? null) === (cur ?? null) ? " sel" : ""}`, data: { v: v ?? "" }, text: n })));
+    m.classList.remove("pm", "tl");
+    this._mode = "menu";
+    this._menuKind = "device";
+    this._vibrate(30);
+    this._$("dev").classList.add("menuopen");
+  }
+  // preset menu: a tap on the preset icon; each line tells how long the preset lasts (HC Thermostat)
+  _presetMenuOk() {
+    const st = this._st(this._cfg.entity);
+    return this._cfg.preset_menu !== false && !!st && (this._sf(st) & F_PRESET) !== 0 &&
+      Array.isArray(st.attributes.preset_modes) && st.attributes.preset_modes.length > 1;
+  }
+  _presetEnd(v) {
+    if (v === undefined || v === null) return "";
+    if (v === "home") return this._t("endHome");
+    if (v === "once") return this._t("endOnce");
+    let at = null;
+    const dur = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(v);
+    if (dur) at = new Date(Date.now() + ((+dur[1] || 0) * 60 + (+dur[2] || 0)) * 60000);
+    else if (!isNaN(Date.parse(v))) at = new Date(v);
+    if (!at) return "";
+    const hm = `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+    const days = Math.round((new Date(at).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
+    return this._t("until").replace("{t}", days > 0 ? `${this._t("days")[at.getDay()]} ${hm}` : hm);
+  }
+  _openPresetMenu() {
+    if (this._mode !== "view") return;
+    const st = this._st(this._cfg.entity);
+    const a = st.attributes, ends = a.preset_end_preview || {};
+    const name = (p) => this._t("presets")[p] || p;
+    const m = this._$("menu");
+    this._menuFill(m, this._t("presetTitle"), "",
       a.preset_modes.map((p) => {
         const end = p === a.preset_mode ? "" : this._presetEnd(ends[p]);
-        return {
-          cls: `mi${p === a.preset_mode ? " sel" : ""}`,
-          data: { v: p },
-          text: name(p),
-          ...(end ? { small: end } : {}),
-        };
-      }),
-    );
+        return { cls: `mi${p === a.preset_mode ? " sel" : ""}`, data: { v: p }, text: name(p), ...(end ? { small: end } : {}) };
+      }));
     m.classList.remove("tl");
     m.classList.add("pm");
     this._mode = "menu";
     this._menuKind = "preset";
     this._vibrate(30);
     this._$("dev").classList.add("menuopen");
+  }
+  async _setPreset(preset) {
+    try {
+      await this._hass.callService("climate", "set_preset_mode", { entity_id: this._cfg.entity, preset_mode: preset });
+    } catch (err) {
+      clearTimeout(this._toastT);
+      this._mode = "cancel";
+      this._$("toastt").textContent = this._t("error");
+      this._toastT = setTimeout(() => { this._mode = "view"; this._render(); }, 2000);
+      this._render(true);
+    }
+  }
+  // what regulates – HC Thermostat tells it (control_type); other integrations are recognised by their
+  // platform (entity registry) and attributes. HIST = on/off with hysteresis.
+  _controlLabel(st) {
+    const c = this._cfg.control;
+    if (c === false || c === "false" || c === "none") return "";
+    if (typeof c === "string" && c !== "auto" && c !== "") return c;
+    const a = st.attributes;
+    const platform = this._hass?.entities?.[st.entity_id]?.platform;
+    const has = (k) => a[k] !== undefined && a[k] !== null;
+    if (a.control_type) {
+      return { tpi: "TPI", pid: "PID", external: this._t("ext"), hysteresis: "HIST", onoff: "HIST" }[a.control_type] || String(a.control_type).toUpperCase();
+    }
+    if (platform === "generic_thermostat") return "HIST";
+    if (platform === "smart_thermostat" || has("pid_mode")) return a.pid_mode === "off" ? "HIST" : "PID";
+    if (platform === "sat" || (has("heating_curve") && has("pulse_width_modulation_enabled"))) {
+      return a.pulse_width_modulation_enabled ? "SAT·PWM" : "SAT·OT";
+    }
+    if (platform === "better_thermostat" || (has("call_for_heat") && has("heating_power"))) {
+      return has("pid_kp") ? "BT·PID" : Object.keys(a).some((k) => k.startsWith("mpc_v2_")) ? "BT·MPC" : "BT";
+    }
+    if (platform === "versatile_thermostat" || has("is_over_switch") || has("is_over_valve") || has("is_over_climate")) {
+      if (a.is_over_climate) {
+        const reg = a.vtherm_over_climate?.regulation?.auto_regulation_mode;
+        return reg && reg !== "auto_regulation_none" ? "VT·REG" : "VT";
+      }
+      const spec = a.specific_states || {};
+      if (spec.auto_tpi_state === "on") return "AUTO-TPI";
+      const fn = (a.vtherm_over_switch || a.vtherm_over_valve || {}).function;
+      return fn ? String(fn).toUpperCase() : "TPI";
+    }
+    if (platform === "opentherm_gw") return "OT";
+    if (platform === "ebusd") return "eBUS";
+    return "";
+  }
+  /* ---------- thermostat list: add / remove thermostats of this card ---------- */
+  // HC info panel (HC Thermostat 0.34+, admins): every input, output, inner value and setting of the thermostat shown
+  _infoOk() {
+    const a = this._st(this._cfg?.entity)?.attributes || {};
+    return this._base.info !== false && !!this._hass?.user?.is_admin && a.hc_mode !== undefined;
+  }
+  _openInfo() {
+    history.pushState(null, "", `/hc-info?entity=${encodeURIComponent(this._cfg.entity)}`);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+  }
+  _manageOk() {
+    return this._base.manage !== false && !!this._hass?.user?.is_admin;
+  }
+  _onCard(id) {
+    return this._all().some((c) => (c ? c.entity : this._base.entity) === id);
+  }
+  _isTrv(id) {
+    const h = this._hass, st = this._st(id), e = h?.entities?.[id];
+    const d = e?.device_id ? h?.devices?.[e.device_id] : null;
+    const txt = [d?.model, d?.model_id, d?.name, st?.attributes?.friendly_name].filter(Boolean).join(" ");
+    return /\btrv|radiator ?valve|radiator ?thermostat|thermostatic|heizk|termoszt[aá]tfej|\bfej\b/i.test(txt) ||
+      ["valve_position", "pi_heating_demand", "valve_opening_degree"].some((k) => st?.attributes?.[k] !== undefined);
+  }
+  _thermTag(id) {
+    const st = this._st(id);
+    if (!st) return "";
+    if (this._isTrv(id)) return "TRV";
+    const platform = this._hass?.entities?.[id]?.platform;
+    if (platform === "hc_thermostat") return "HC";
+    if ((st.attributes.hvac_modes || []).some((m) => m === "cool" || m === "heat_cool")) return this._hu() ? "KLÍMA" : "AC";
+    return "";
+  }
+  _openThermMenu() {
+    if (this._mode !== "view") return;
+    const h = this._hass;
+    const ids = Object.keys(h.states).filter((id) => id.startsWith("climate.") && h.states[id].state !== "unavailable");
+    const name = (id) => h.states[id].attributes.friendly_name || id;
+    ids.sort((a, b) => (this._onCard(b) - this._onCard(a)) || name(a).localeCompare(name(b)));
+    const m = this._$("menu");
+    this._menuFill(m, this._t("listTitle"), this._t("listHint"),
+      ids.map((id) => {
+        const info = [id === this._base.entity ? this._t("listMain") : "", this._entityArea(id), this._thermTag(id)].filter(Boolean).join(" · ");
+        return { cls: `mi${this._onCard(id) ? " on" : ""}${id === this._thSel ? " sel" : ""}`, data: { e: id }, text: String(name(id)), small: info || "\u00a0" };
+      }));
+    m.classList.remove("pm");
+    m.classList.add("tl");
+    this._mode = "menu";
+    this._menuKind = "therm";
+    this._vibrate(30);
+    this._$("dev").classList.add("menuopen");
+    this._thIdleArm();
+  }
+  // the list closes by itself after 10 s without a touch
+  _thIdleArm() {
+    clearTimeout(this._thIdle);
+    this._thIdle = setTimeout(() => { if (this._mode === "menu" && this._menuKind === "therm") this._closeMenu(); }, 10000);
+  }
+  _bindThermMenu() {
+    const m = this._$("menu");
+    let timer = 0, btn = null;
+    const stop = () => { clearTimeout(timer); if (btn) btn.classList.remove("hold"); btn = null; };
+    this._thStop = stop; // closing the list cancels a press in progress
+    m.addEventListener("pointerdown", (e) => {
+      if (this._menuKind !== "therm") return;
+      clearTimeout(this._thT);
+      this._thIdleArm();
+      const b = e.target.closest("button[data-e]");
+      if (!b) return;
+      stop();
+      btn = b;
+      b.classList.add("hold");
+      timer = setTimeout(() => {
+        const id = b.dataset.e;
+        const open = this._mode === "menu" && this._menuKind === "therm" && b.isConnected && this._$("dev").classList.contains("menuopen");
+        stop();
+        if (!open) return;
+        this._thHeld = true; this._thSel = id; this._toggleTherm(id);
+      }, 650);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => m.addEventListener(ev, stop));
+    window.addEventListener("pointerup", stop); // released outside the list (e.g. it closed meanwhile)
+    m.addEventListener("scroll", () => { stop(); if (this._menuKind === "therm") this._thIdleArm(); }, { passive: true });
+  }
+  async _toggleTherm(id) {
+    this._vibrate(40);
+    if (id === this._base.entity) { this._thToast(this._t("listMainFixed"), false); return; }
+    const adding = !this._onCard(id);
+    const trv = this._isTrv(id);
+    const key = this._entityArea(id) || this._st(id)?.attributes?.friendly_name || id;
+    const mutate = (card) => {
+      const rooms = { ...(card.rooms || {}) };
+      if (adding) {
+        const item = trv ? { entity: id, trv: true } : id;
+        const k = Object.keys(rooms).find((x) => norm(x) === norm(key)) ?? key;
+        rooms[k] = rooms[k] === undefined ? item : [].concat(rooms[k], item);
+      } else {
+        for (const k of Object.keys(rooms)) {
+          const left = [].concat(rooms[k]).filter((x) => (typeof x === "string" ? x : x && x.entity) !== id);
+          if (!left.length) delete rooms[k];
+          else rooms[k] = left.length === 1 ? left[0] : left;
+        }
+      }
+      if (Object.keys(rooms).length) card.rooms = rooms; else delete card.rooms;
+    };
+    try {
+      try { sessionStorage.setItem("hc-dial-card:reopen", JSON.stringify({ e: this._base.entity, t: Date.now(), sel: id, msg: adding ? "listAdded" : "listRemoved" })); } catch (e) { /* no storage */ }
+      await this._saveCard(mutate);
+      mutate(this._base);
+      this._sig = "\u0000";
+      this._thToast(this._t(adding ? "listAdded" : "listRemoved"), true);
+    } catch (err) {
+      try { sessionStorage.removeItem("hc-dial-card:reopen"); } catch (e) { /* no storage */ }
+      console.warn("hc-dial-card: saving the thermostat list failed", err);
+      this._thToast(this._t("listError"), false);
+    }
+  }
+  // find this card in the dashboard's stored configuration and save the change there
+  async _saveCard(mutate) {
+    const h = this._hass;
+    const seg = decodeURIComponent(location.pathname.split("/")[1] || "");
+    const urlPath = !seg || seg === "lovelace" ? null : seg;
+    const conf = await h.callWS({ type: "lovelace/config", url_path: urlPath });
+    const hits = [];
+    const walk = (o) => {
+      if (Array.isArray(o)) o.forEach(walk);
+      else if (o && typeof o === "object") {
+        if (o.type === "custom:hc-dial-card" && o.entity === this._base.entity) hits.push(o);
+        Object.values(o).forEach(walk);
+      }
+    };
+    walk(conf);
+    const same = JSON.stringify(this._orig);
+    const card = hits.find((o) => JSON.stringify(o) === same) || (hits.length === 1 ? hits[0] : null);
+    if (!card) throw new Error(`card not found (${hits.length} with ${this._base.entity})`);
+    mutate(card);
+    await h.callWS({ type: "lovelace/config/save", url_path: urlPath, config: conf });
+  }
+  _thToast(text, ok) {
+    const m = this._$("menu");
+    let t = m.querySelector(".mt small");
+    if (t) { t.textContent = text; t.style.color = ok ? "#7bc043" : "#e57373"; }
+    clearTimeout(this._thT);
+    // success: the list closes after 5 s (touching it again keeps it open); error: back to the hint
+    this._thT = setTimeout(() => {
+      if (this._mode !== "menu" || this._menuKind !== "therm") return;
+      if (ok) this._closeMenu(); else this._openThermMenuAgain();
+    }, ok ? 5000 : 1600);
+  }
+  _openThermMenuAgain() {
+    if (this._thStop) this._thStop();
+    const top = this._$("menu").scrollTop;
+    this._mode = "view";
+    this._openThermMenu();
+    this._$("menu").scrollTop = top;
   }
   async _setPreset(preset) {
     try {
@@ -2084,29 +2186,15 @@ class HcDialCard extends HTMLElement {
     if (!off && st.state !== "unavailable" && st.state !== "unknown")
       (this._lastModes = this._lastModes || {})[cfg.entity] = st.state;
     const act = a.hvac_action;
-    const cool =
-      act === "cooling" ||
-      (act === undefined || act === null ? st.state === "cool" : false);
+    const cool = act === "cooling" || (act === undefined || act === null ? st.state === "cool" : false);
     const kind = HEAT_TYPE[this._heatType(st)];
     // the mode dot shows the kind of heat; a heat-and-cool unit takes the colour of what it is doing
-    const coolNow =
-      act === "cooling" || (st.state === "cool" && act !== "heating");
-    const [mIcon, mCol] =
-      st.state === "heat" ||
-      (kind.cool && ["heat_cool", "auto"].includes(st.state) && !coolNow)
-        ? kind.mode
-        : st.state === "cool" || (kind.cool && coolNow)
-          ? kind.cool || MODE_ICON.cool
-          : MODE_ICON[st.state] || ["mdi:thermostat", "#777"];
+    const coolNow = act === "cooling" || (st.state === "cool" && act !== "heating");
+    const [mIcon, mCol] = st.state === "heat" || (kind.cool && ["heat_cool", "auto"].includes(st.state) && !coolNow) ? kind.mode
+      : (st.state === "cool" || (kind.cool && coolNow)) ? (kind.cool || MODE_ICON.cool)
+      : MODE_ICON[st.state] || ["mdi:thermostat", "#777"];
     $("mico").setAttribute("icon", mIcon);
-    $("mdot").style.background =
-      !kind.cool && st.state === "heat_cool"
-        ? act === "heating"
-          ? "#ff7a1a"
-          : act === "cooling"
-            ? "#2f8cff"
-            : mCol
-        : mCol;
+    $("mdot").style.background = !kind.cool && st.state === "heat_cool" ? (act === "heating" ? "#ff7a1a" : act === "cooling" ? "#2f8cff" : mCol) : mCol;
 
     // preset
     const pm = a.preset_mode;
@@ -2128,59 +2216,29 @@ class HcDialCard extends HTMLElement {
     const log =
       dec && Array.isArray(dec.attributes.log) ? dec.attributes.log : [];
     const lastLog = log.length ? log[log.length - 1] : null;
-    const demand =
-      lastLog && Number.isFinite(lastLog.demand) ? lastLog.demand : null;
+    const demand = lastLog && Number.isFinite(lastLog.demand) ? lastLog.demand : null;
     // real level for the three steps: power draw (AC / heat pump), else the demand (HC), else all three
     const power = cfg.power ? this._num(cfg.power) : null;
-    const pMax = Number(cfg.power_max) || 1800,
-      pIdle = Number(cfg.power_idle) || 40;
+    const pMax = Number(cfg.power_max) || 1800, pIdle = Number(cfg.power_idle) || 40;
     let level = null;
-    if (power !== null)
-      level =
-        power <= pIdle
-          ? 0
-          : power < pMax / 3
-            ? 1
-            : power < (2 * pMax) / 3
-              ? 2
-              : 3;
+    if (power !== null) level = power <= pIdle ? 0 : power < pMax / 3 ? 1 : power < (2 * pMax) / 3 ? 2 : 3;
     else {
       const d = this._demandPct(a) ?? demand;
-      if (d !== null && d !== undefined)
-        level = d <= 0 ? 0 : d <= 10 ? 1 : d <= 30 ? 2 : 3;
+      if (d !== null && d !== undefined) level = d <= 0 ? 0 : d <= 10 ? 1 : d <= 30 ? 2 : 3;
     }
     const burningSt = this._st(cfg.heating);
-    const actIcon =
-      act === "heating" || act === "preheating"
-        ? kind.run
-        : act === "cooling"
-          ? kind.coolRun || ACTION_ICON.cooling
-          : ACTION_ICON[act];
-    const burning = burningSt
-      ? burningSt.state === "on"
-      : power !== null
-        ? power > pIdle && !!actIcon
-        : !!actIcon;
+    const actIcon = act === "heating" || act === "preheating" ? kind.run
+      : act === "cooling" ? (kind.coolRun || ACTION_ICON.cooling) : ACTION_ICON[act];
+    const burning = burningSt ? burningSt.state === "on" : power !== null ? power > pIdle && !!actIcon : !!actIcon;
     const requesting = !!actIcon;
     const burnEl = $("burn");
     burnEl.style.setProperty("--act", actIcon ? actIcon[1] : "#ff8a1f");
-    burnEl
-      .querySelector("ha-icon")
-      .setAttribute("icon", actIcon ? actIcon[0] : kind.run[0]);
+    burnEl.querySelector("ha-icon").setAttribute("icon", actIcon ? actIcon[0] : kind.run[0]);
     burnEl.title = act || "";
     burnEl.classList.toggle("on", burning);
     burnEl.classList.toggle("req", !burning && requesting);
-    const nb =
-      level === null
-        ? burning || requesting
-          ? 3
-          : 0
-        : Math.max(level, burning ? 1 : 0);
-    burnEl
-      .querySelectorAll(".bars i")
-      .forEach((el, i) =>
-        el.classList.toggle("on", i < nb && (burning || requesting)),
-      );
+    const nb = level === null ? (burning || requesting ? 3 : 0) : Math.max(level, burning ? 1 : 0);
+    burnEl.querySelectorAll(".bars i").forEach((el, i) => el.classList.toggle("on", i < nb && (burning || requesting)));
 
     // window
     let winOpen = false;
@@ -2216,16 +2274,11 @@ class HcDialCard extends HTMLElement {
     const setting = this._mode === "set";
     const fieldCool = setting && this._field === "target_temp_high";
     dev.classList.toggle("cool", fieldCool);
-    $("setf").textContent =
-      !setting || !range ? "" : fieldCool ? this._t("cool") : this._t("heat");
+    $("setf").textContent = !setting || !range ? "" : fieldCool ? this._t("cool") : this._t("heat");
     // SET mode: which thermostat is being set (its name, and its area when the name does not tell it)
     if (setting) {
-      const fname = st.attributes.friendly_name || this._cfg.entity,
-        area = this._entityArea(this._cfg.entity);
-      $("setnt").textContent =
-        area && !norm(fname).includes(norm(area))
-          ? `${area} · ${fname}`
-          : fname;
+      const fname = st.attributes.friendly_name || this._cfg.entity, area = this._entityArea(this._cfg.entity);
+      $("setnt").textContent = area && !norm(fname).includes(norm(area)) ? `${area} · ${fname}` : fname;
     }
     // label: "auto" → while following, the room you are in (area_labels abbreviations); a candidate's own label wins
     let lab = this._cand && this._cand.label ? this._cand.label : cfg.label;
@@ -2469,6 +2522,22 @@ const EDITOR_LABELS = {
     control: "Oznaka tipa upravljanja (auto, sopstveni tekst ili false)",
     preset_menu: "Meni unapred podešenih režima na ikonici režima",
   },
+  hu: { power: "Teljesítmény-szenzor (W; a lépcsőkhöz)", power_max: "Legnagyobb teljesítmény (W)", heat_type: "Fűtés fajtája (ikon)", ht_auto: "Automatikus (a termosztát szerint)", ht_gas_boiler: "Gázkazán", ht_floor: "Padlófűtés", ht_radiator: "Radiátor / termosztátfej", ht_heat_pump: "Hőszivattyú", ht_air_conditioner: "Klíma (fűt és hűt)", ht_electric: "Elektromos fűtés", ht_stove: "Kandalló / fatüzelés", ht_district: "Távfűtés", ht_solar: "Napkollektor", ht_flame: "Láng (régi ikon)",
+    entity: "Termosztát", label: "Felirat (max 6 karakter; area = a termosztát területe)", step: "Lépésköz", heating: "Tényleges fűtés jelzője",
+    weather: "Időjárás", outdoor: "Kinti hőmérő", humidity: "Páratartalom-szenzor", window: "Ablak/ajtó érzékelők", decision: "HC döntés-szenzor",
+    tap_action: "Koppintás", timeout: "SET időtúllépés (mp)", switch_back: "Visszaváltás (mp)", away_hold: "Távollét kivárása (mp)",
+    follow_app_only: "Csak a mobil appban kövessen", follow: "Követés: felhasználó → helyiség-szenzor (YAML)",
+    rooms: "Helyiség → termosztát (YAML)", room_map: "Érték → helyiség átváltás (YAML)", area_labels: "Terület-rövidítések (YAML)",
+    follow_choices: "További jeladók a készülék-menübe", follow_hint: "Helykövetés (opcionális)",
+    control: "Szabályozás jelzése (auto, saját szöveg vagy false)", preset_menu: "Preset-menü a preset ikonon" },
+  en: { power: "Power sensor (W; for the steps)", power_max: "Maximum power (W)", heat_type: "Kind of heat (icon)", ht_auto: "Automatic (from the thermostat)", ht_gas_boiler: "Gas boiler", ht_floor: "Floor heating", ht_radiator: "Radiator / TRV", ht_heat_pump: "Heat pump", ht_air_conditioner: "Air conditioner (heats and cools)", ht_electric: "Electric heating", ht_stove: "Fireplace / wood stove", ht_district: "District heating", ht_solar: "Solar thermal", ht_flame: "Flame (old icon)",
+    entity: "Thermostat", label: "Label (max 6 chars; area = thermostat's area)", step: "Step", heating: "Actual heating sensor",
+    weather: "Weather", outdoor: "Outdoor sensor", humidity: "Humidity sensor", window: "Window/door sensors", decision: "HC decision sensor",
+    tap_action: "Tap action", timeout: "SET timeout (s)", switch_back: "Switch back (s)", away_hold: "Away hold (s)",
+    follow_app_only: "Follow only in the mobile app", follow: "Follow: user → room sensor (YAML)",
+    rooms: "Room → thermostat (YAML)", room_map: "Value → room mapping (YAML)", area_labels: "Area abbreviations (YAML)",
+    follow_choices: "Extra beacons for the device menu", follow_hint: "Room following (optional)",
+    control: "Control type label (auto, own text or false)", preset_menu: "Preset menu on the preset icon" },
 };
 class HcDialCardEditor extends HTMLElement {
   setConfig(config) {
@@ -2493,116 +2562,42 @@ class HcDialCardEditor extends HTMLElement {
   }
   _schema() {
     return [
-      {
-        name: "entity",
-        required: true,
-        selector: { entity: { domain: "climate" } },
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          { name: "label", selector: { text: {} } },
-          {
-            name: "step",
-            selector: { number: { min: 0.1, max: 5, step: 0.1, mode: "box" } },
-          },
-        ],
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          { name: "weather", selector: { entity: { domain: "weather" } } },
-          { name: "outdoor", selector: { entity: { domain: "sensor" } } },
-          { name: "humidity", selector: { entity: { domain: "sensor" } } },
-          {
-            name: "heating",
-            selector: { entity: { domain: "binary_sensor" } },
-          },
-        ],
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          { name: "power", selector: { entity: { domain: "sensor" } } },
-          {
-            name: "power_max",
-            selector: {
-              number: { min: 100, max: 20000, step: 50, mode: "box" },
-            },
-          },
-        ],
-      },
-      {
-        name: "heat_type",
-        selector: {
-          select: {
-            mode: "dropdown",
-            options: HEAT_TYPES.map((v) => ({
-              value: v,
-              label: this._l("ht_" + v),
-            })),
-          },
-        },
-      },
-      {
-        name: "window",
-        selector: { entity: { domain: "binary_sensor", multiple: true } },
-      },
-      {
-        name: "tap_action",
-        selector: {
-          select: {
-            mode: "dropdown",
-            options: ["auto", "more-info", "cycle", "none"],
-          },
-        },
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          { name: "control", selector: { text: {} } },
-          { name: "preset_menu", selector: { boolean: {} } },
-        ],
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "timeout",
-            selector: { number: { min: 5, max: 120, mode: "box" } },
-          },
-          {
-            name: "switch_back",
-            selector: { number: { min: 3, max: 120, mode: "box" } },
-          },
-        ],
-      },
-      {
-        type: "expandable",
-        name: "",
-        title: this._l("follow_hint"),
-        schema: [
-          { name: "follow", selector: { object: {} } },
-          { name: "follow_app_only", selector: { boolean: {} } },
-          { name: "rooms", selector: { object: {} } },
-          { name: "room_map", selector: { object: {} } },
-          { name: "area_labels", selector: { object: {} } },
-          {
-            name: "follow_choices",
-            selector: { entity: { domain: "sensor", multiple: true } },
-          },
-          {
-            name: "away_hold",
-            selector: { number: { min: 0, max: 600, mode: "box" } },
-          },
-          { name: "decision", selector: { entity: { domain: "sensor" } } },
-        ],
-      },
+      { name: "entity", required: true, selector: { entity: { domain: "climate" } } },
+      { type: "grid", name: "", schema: [
+        { name: "label", selector: { text: {} } },
+        { name: "step", selector: { number: { min: 0.1, max: 5, step: 0.1, mode: "box" } } },
+      ] },
+      { type: "grid", name: "", schema: [
+        { name: "weather", selector: { entity: { domain: "weather" } } },
+        { name: "outdoor", selector: { entity: { domain: "sensor" } } },
+        { name: "humidity", selector: { entity: { domain: "sensor" } } },
+        { name: "heating", selector: { entity: { domain: "binary_sensor" } } },
+      ] },
+      { type: "grid", name: "", schema: [
+        { name: "power", selector: { entity: { domain: "sensor" } } },
+        { name: "power_max", selector: { number: { min: 100, max: 20000, step: 50, mode: "box" } } },
+      ] },
+      { name: "heat_type", selector: { select: { mode: "dropdown", options: HEAT_TYPES.map((v) => ({ value: v, label: this._l("ht_" + v) })) } } },
+      { name: "window", selector: { entity: { domain: "binary_sensor", multiple: true } } },
+      { name: "tap_action", selector: { select: { mode: "dropdown", options: ["auto", "more-info", "cycle", "none"] } } },
+      { type: "grid", name: "", schema: [
+        { name: "control", selector: { text: {} } },
+        { name: "preset_menu", selector: { boolean: {} } },
+      ] },
+      { type: "grid", name: "", schema: [
+        { name: "timeout", selector: { number: { min: 5, max: 120, mode: "box" } } },
+        { name: "switch_back", selector: { number: { min: 3, max: 120, mode: "box" } } },
+      ] },
+      { type: "expandable", name: "", title: this._l("follow_hint"), schema: [
+        { name: "follow", selector: { object: {} } },
+        { name: "follow_app_only", selector: { boolean: {} } },
+        { name: "rooms", selector: { object: {} } },
+        { name: "room_map", selector: { object: {} } },
+        { name: "area_labels", selector: { object: {} } },
+        { name: "follow_choices", selector: { entity: { domain: "sensor", multiple: true } } },
+        { name: "away_hold", selector: { number: { min: 0, max: 600, mode: "box" } } },
+        { name: "decision", selector: { entity: { domain: "sensor" } } },
+      ] },
     ];
   }
   async _ensureForm() {

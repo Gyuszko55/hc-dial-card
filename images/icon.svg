@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#29b6f6"/>
+      <stop offset="1" stop-color="#1a4fc4"/>
+    </linearGradient>
+    <linearGradient id="gomb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfeaff"/>
+    </linearGradient>
+    <radialGradient id="lap" cx=".42" cy=".36" r=".75">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e8f1ff"/>
+    </radialGradient>
+    <linearGradient id="iv" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffd27a"/>
+    </linearGradient>
+    <filter id="arnyek" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#0b2a6b" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- skála: 270°-os osztás a gomb körül (alul nyitott) -->
+  <g transform="translate(256 262)" stroke="#fff" stroke-linecap="round">
+    <g opacity=".45" stroke-width="6">
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-135)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-112.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-90)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-67.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-45)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(-22.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(0)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(22.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(45)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(67.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(90)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(112.5)"/>
+      <line x1="0" y1="-214" x2="0" y2="-199" transform="rotate(135)"/>
+    </g>
+    <!-- célív: a skála elejétől a beállított értékig -->
+    <path d="M -126.6 126.6 A 179 179 0 1 1 126.6 -126.6" fill="none" stroke="url(#iv)" stroke-width="16"/>
+  </g>
+  <!-- forgatható gomb -->
+  <g filter="url(#arnyek)">
+    <circle cx="256" cy="262" r="150" fill="url(#gomb)"/>
+  </g>
+  <!-- recézés a gomb peremén -->
+  <circle cx="256" cy="262" r="141" fill="none" stroke="#c9daf6" stroke-width="10" stroke-dasharray="4.6 9.2"/>
+  <circle cx="256" cy="262" r="124" fill="url(#lap)" stroke="#d3e1f8" stroke-width="2"/>
+  <!-- jelölő pötty (a gomb állása) -->
+  <circle cx="345" cy="173" r="11" fill="#29b6f6"/>
+  <!-- hőfok -->
+  <text x="248" y="300" text-anchor="middle" font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="112" font-weight="700" fill="#1a4fc4" letter-spacing="-4">21</text>
+  <text x="318" y="262" text-anchor="middle" font-family="Roboto, 'Segoe UI', Arial, sans-serif" font-size="74" font-weight="700" fill="#1a4fc4">°</text>
+  <!-- kis láng: fűtés -->
+  <path d="M256 322 c-14 12 -16 24 -10 34 c4 7 16 9 22 2 c7 -8 4 -18 -2 -24 c0 6 -3 10 -7 10 c2 -8 0 -15 -3 -22 z" fill="#ff8a3d"/>
+</svg>
