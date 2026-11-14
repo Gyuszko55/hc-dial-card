@@ -31,7 +31,7 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
   | Versatile Thermostat | TPI, AUTO-TPI (learning), VT·REG (over a climate with self-regulation), VT |
   | OpenTherm Gateway, ebusd | OT, eBUS |
 - **Per-device choice.** Long-press the outer ring to choose which beacon *this* device follows (or none). Stored in the browser of that device.
-- **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian and German.
+- **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian, German and Serbian (Cyrillic, and Latin with the `sr-Latn` language).
 - **Visual editor**, keyboard control and screen-reader labels.
 
 ## Installation

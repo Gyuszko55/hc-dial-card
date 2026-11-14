@@ -61,7 +61,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.14.0";
+const HC_DIAL_VERSION = "1.17.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -109,6 +109,16 @@ const PRESET_ICON = {
   home: ["mdi:home", "#4fc3f7"], boost: ["mdi:rocket-launch", "#ff5252"], activity: ["mdi:run", "#ffd54f"],
   auto: ["mdi:calendar-clock", "#81c784"],
 };
+// HTML escaping for the few values that go into innerHTML (everything else uses textContent)
+const dialEsc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+// language of the UI: "sr-Latn" (Serbian in Latin script) has its own table, else the first two letters; unknown → English
+const dialLang = (hass, table) => {
+  const raw = String(hass?.locale?.language || hass?.language || "en").toLowerCase().replace("_", "-");
+  if (raw.startsWith("sr-latn")) return table["sr-Latn"] ? "sr-Latn" : "en";
+  const l = raw.slice(0, 2);
+  return table[l] ? l : "en";
+};
 // UI strings per language; unknown languages fall back to English.
 const STR = {
   hu: {
@@ -118,7 +128,7 @@ const STR = {
     hintRange: "Gyűrű: állít · koppintás: fűt/hűt · gomb: be/ki · hosszan: rögzít",
     hint: "Gyűrű: állít · gomb: be/ki · hosszan: rögzít",
     menuTitle: "Ez a készülék követi:", menuDefault: "Alapbeállítás", menuNone: "Nem követ", menuClose: "Bezár",
-    info: "HC info: minden adat", listTitle: "Termosztátok a kártyán", listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz", listMain: "fő",
+    info: "HC info: minden adat", pauseTitle: "HC felügyelet – koppintásra szünetel", pausedTitle: "HC felügyelet szünetel – koppintásra folytatódik", pauseStart: "Felügyelet szünetel", pauseEnd: "Felügyelet folytatódik", listTitle: "Termosztátok a kártyán", listHint: "koppintás: kijelöl · hosszan: hozzáad / levesz", listMain: "fő",
     listAdded: "Hozzáadva", listRemoved: "Levéve", listMainFixed: "A fő termosztát marad", listError: "Nem menthető (YAML?)",
     presetTitle: "Beállítás:", until: "{t}-ig", endHome: "hazaérkezésig", endOnce: "egyszeri", ext: "KÜLSŐ",
     presets: { eco: "Eco", away: "Távol", vacation: "Szabadság", sleep: "Alvás", night: "Éjszaka", comfort: "Komfort",
@@ -131,14 +141,14 @@ const STR = {
     hintRange: "Ring: adjust · tap: heat/cool · button: on/off · long press: save",
     hint: "Ring: adjust · button: on/off · long press: save",
     menuTitle: "This device follows:", menuDefault: "Default", menuNone: "Don't follow", menuClose: "Close",
-    info: "HC info: every value", listTitle: "Thermostats on the card", listHint: "tap: select · long press: add / remove", listMain: "main",
+    info: "HC info: every value", pauseTitle: "HC supervision – tap to pause", pausedTitle: "HC supervision paused – tap to resume", pauseStart: "Supervision paused", pauseEnd: "Supervision resumed", listTitle: "Thermostats on the card", listHint: "tap: select · long press: add / remove", listMain: "main",
     listAdded: "Added", listRemoved: "Removed", listMainFixed: "The main thermostat stays", listError: "Cannot save (YAML?)",
     presetTitle: "Preset:", until: "until {t}", endHome: "until someone is home", endOnce: "once", ext: "EXT",
     presets: { eco: "Eco", away: "Away", vacation: "Vacation", sleep: "Sleep", night: "Night", comfort: "Comfort",
       home: "Home", boost: "Boost", activity: "Activity", auto: "Auto", none: "None" },
   },
   de: {
-    info: "HC-Info: alle Werte", days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
+    info: "HC-Info: alle Werte", pauseTitle: "HC-Überwachung – tippen zum Pausieren", pausedTitle: "HC-Überwachung pausiert – tippen zum Fortsetzen", pauseStart: "Überwachung pausiert", pauseEnd: "Überwachung fortgesetzt", days: ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], target: "SOLL", now: "jetzt", was: "vorher", on: "EIN", off: "AUS",
     heat: "HEIZEN", cool: "KÜHLEN", unavailable: "Nicht verfügbar", saved: "Gespeichert", unchanged: "Unverändert",
     error: "Fehler – nicht gespeichert", shadow: "Schattenmodus: schaltet nicht",
     hintRange: "Ring: einstellen · Tippen: Heizen/Kühlen · Taste: Ein/Aus · lange drücken: speichern",
@@ -147,6 +157,110 @@ const STR = {
     presetTitle: "Profil:", until: "bis {t}", endHome: "bis jemand heimkommt", endOnce: "einmalig", ext: "EXTERN",
     presets: { eco: "Eco", away: "Abwesend", vacation: "Urlaub", sleep: "Schlafen", night: "Nacht", comfort: "Komfort",
       home: "Zuhause", boost: "Boost", activity: "Aktivität", auto: "Auto", none: "Keine" },
+  },
+  sr: {
+    days: ["НЕД", "ПОН", "УТО", "СРЕ", "ЧЕТ", "ПЕТ", "СУБ"],
+    target: "ЦИЉ",
+    now: "сад",
+    was: "било",
+    on: "УКЉ",
+    off: "ИСКЉ",
+    heat: "ГРЕЈАЊЕ",
+    cool: "ХЛАЂЕЊЕ",
+    unavailable: "Недоступно",
+    saved: "Сачувано",
+    unchanged: "Није промењено",
+    error: "Грешка – није сачувано",
+    shadow: "Режим сенке: не пребацује",
+    hintRange:
+      "Прстен: подешава · додир: греј/хлади · дугме: укљ/искљ · дуго: чува",
+    hint: "Прстен: подешава · дугме: укљ/искљ · дуго: чува",
+    menuTitle: "Овај уређај прати:",
+    menuDefault: "Подразумевано",
+    menuNone: "Не прати",
+    menuClose: "Затвори",
+    info: "HC info: сви подаци",
+    pauseTitle: "HC надзор – додир за паузу",
+    pausedTitle: "HC надзор паузиран – додир за наставак",
+    pauseStart: "Надзор паузиран",
+    pauseEnd: "Надзор настављен",
+    listTitle: "Термостати на картици",
+    listHint: "додир: бира · дуго: додаје / уклања",
+    listMain: "главни",
+    listAdded: "Додато",
+    listRemoved: "Уклоњено",
+    listMainFixed: "Главни термостат остаје",
+    listError: "Није могуће сачувати (YAML?)",
+    presetTitle: "Подешавање:",
+    until: "до {t}",
+    endHome: "до доласка кући",
+    endOnce: "једнократно",
+    ext: "СПОЉНО",
+    presets: {
+      eco: "Еко",
+      away: "Одсутан",
+      vacation: "Одмор",
+      sleep: "Спавање",
+      night: "Ноћ",
+      comfort: "Комфор",
+      home: "Код куће",
+      boost: "Брзо загревање",
+      activity: "Активност",
+      auto: "Ауто",
+      none: "Нема",
+    },
+  },
+  "sr-Latn": {
+    days: ["NED", "PON", "UTO", "SRE", "ČET", "PET", "SUB"],
+    target: "CILJ",
+    now: "sad",
+    was: "bilo",
+    on: "UKLJ",
+    off: "ISKLJ",
+    heat: "GREJANJE",
+    cool: "HLAĐENJE",
+    unavailable: "Nedostupno",
+    saved: "Sačuvano",
+    unchanged: "Nije promenjeno",
+    error: "Greška – nije sačuvano",
+    shadow: "Režim senke: ne prebacuje",
+    hintRange:
+      "Prsten: podešava · dodir: grej/hladi · dugme: uklj/isklj · dugo: čuva",
+    hint: "Prsten: podešava · dugme: uklj/isklj · dugo: čuva",
+    menuTitle: "Ovaj uređaj prati:",
+    menuDefault: "Podrazumevano",
+    menuNone: "Ne prati",
+    menuClose: "Zatvori",
+    info: "HC info: svi podaci",
+    pauseTitle: "HC nadzor – dodir za pauzu",
+    pausedTitle: "HC nadzor pauziran – dodir za nastavak",
+    pauseStart: "Nadzor pauziran",
+    pauseEnd: "Nadzor nastavljen",
+    listTitle: "Termostati na kartici",
+    listHint: "dodir: bira · dugo: dodaje / uklanja",
+    listMain: "glavni",
+    listAdded: "Dodato",
+    listRemoved: "Uklonjeno",
+    listMainFixed: "Glavni termostat ostaje",
+    listError: "Nije moguće sačuvati (YAML?)",
+    presetTitle: "Podešavanje:",
+    until: "do {t}",
+    endHome: "do dolaska kući",
+    endOnce: "jednokratno",
+    ext: "SPOLJNO",
+    presets: {
+      eco: "Eko",
+      away: "Odsutan",
+      vacation: "Odmor",
+      sleep: "Spavanje",
+      night: "Noć",
+      comfort: "Komfor",
+      home: "Kod kuće",
+      boost: "Brzo zagrevanje",
+      activity: "Aktivnost",
+      auto: "Auto",
+      none: "Nema",
+    },
   },
 };
 const AWAY_STATES = ["unknown", "unavailable", "not_home", "away", "none", ""];
@@ -279,6 +393,8 @@ class HcDialCard extends HTMLElement {
     if (t && t !== "auto" && HEAT_TYPE[t]) return t;
     const a = (st && st.attributes) || {};
     if (a.heat_type && HEAT_TYPE[a.heat_type]) return a.heat_type;
+    // a TRV (trv: true in rooms, or recognised as a valve head) heats a radiator
+    if ((this._cand && this._cand.trv) || (st && st.entity_id && this._isTrv(st.entity_id))) return "radiator";
     const modes = a.hvac_modes || [];
     return modes.includes("cool") ? "air_conditioner" : "gas_boiler";
   }
@@ -449,8 +565,7 @@ class HcDialCard extends HTMLElement {
     return Number.isFinite(v) ? v : null;
   }
   _lang() {
-    const l = (this._hass?.locale?.language || this._hass?.language || "en").slice(0, 2).toLowerCase();
-    return STR[l] ? l : "en";
+    return dialLang(this._hass, STR);
   }
   _t(k) {
     return STR[this._lang()][k] ?? STR.en[k];
@@ -462,7 +577,7 @@ class HcDialCard extends HTMLElement {
     return { language: lang, system: undefined, comma_decimal: "en-US", decimal_comma: "de-DE", space_comma: "fr-FR", none: lang }[nf] ?? lang;
   }
   _hu() {
-    return (this._hass?.locale?.language || this._hass?.language || "hu").startsWith("hu");
+    return (this._hass?.locale?.language || this._hass?.language || "en").startsWith("hu");
   }
   _fmt(v, d = 1) {
     if (v === null || v === undefined || !Number.isFinite(v)) return "--";
@@ -583,6 +698,9 @@ class HcDialCard extends HTMLElement {
         .tlist { left:81%; top:72%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
         .hcinfo { left:17%; top:61%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
         .dev.set .hcinfo { display:none !important; }
+        .pause { left:22%; top:81%; color:#8a9099; cursor:pointer; padding:calc(1 * var(--cq)); }
+        .pause.on { color:#ff9a3c; animation: blink 2s infinite; }
+        .dev.set .pause { display:none !important; }
         .dev.set .tlist { display:none !important; }
         .dev.menuopen .menu.tl { justify-content:flex-start; padding:17% 15% 14%; gap:calc(.9 * var(--cq)); }
         .menu.tl .mt small { display:block; font-size:calc(2.3 * var(--cqf)); color:#888; margin-top:calc(.4 * var(--cq)); text-align:center; }
@@ -630,6 +748,8 @@ class HcDialCard extends HTMLElement {
         .toast ha-icon { --mdc-icon-size: calc(12 * var(--cq)); }
         .dev.saved .toast, .dev.cancel .toast { display:flex; }
         .dev.saved .toast ha-icon { color:#7bc043; }
+        .dev.pausing .toast { display:flex; }
+        .dev.pausing .toast ha-icon { color:#ff9a3c; }
         .dev.cancel .toast ha-icon { color:#999; }
         .press { position:absolute; inset:0; border-radius:50%; pointer-events:none; opacity:0;
                  background: conic-gradient(rgba(255,154,60,.35) var(--p,0%), transparent 0); }
@@ -674,6 +794,7 @@ class HcDialCard extends HTMLElement {
             <div class="abs shadowm" id="shadowm"><ha-icon icon="mdi:eye-outline"></ha-icon></div>
             <div class="abs tlist" id="tlist"><ha-icon icon="mdi:thermostat"></ha-icon></div>
             <div class="abs hcinfo" id="hcinfo"><ha-icon icon="mdi:information-outline"></ha-icon></div>
+            <div class="abs pause" id="pause" role="button"><ha-icon id="pausei" icon="mdi:pause-circle-outline"></ha-icon></div>
             <div class="abs pwr" id="pwr"><ha-icon icon="mdi:power"></ha-icon><span id="pwrt"></span></div>
             <div class="abs clock" id="clock"><span id="time"></span><span id="day"></span></div>
             <div class="abs hint" id="hint"></div>
@@ -743,6 +864,7 @@ class HcDialCard extends HTMLElement {
       this._onPreset = e.composedPath().some((el) => el.id === "eco");
       this._onList = e.composedPath().some((el) => el.id === "tlist");
       this._onInfo = e.composedPath().some((el) => el.id === "hcinfo");
+      this._onPause = e.composedPath().some((el) => el.id === "pause");
       t0 = performance.now(); x0 = e.clientX; y0 = e.clientY; armed = true;
       dev.classList.add("pressing");
       raf = requestAnimationFrame(anim);
@@ -758,6 +880,7 @@ class HcDialCard extends HTMLElement {
       else if (tap && this._mode === "view" && this._onPreset && this._presetMenuOk()) this._openPresetMenu();
       else if (tap && this._mode === "view" && this._onList && this._manageOk()) this._openThermMenu();
       else if (tap && this._mode === "view" && this._onInfo && this._infoOk()) this._openInfo();
+      else if (tap && this._mode === "view" && this._onPause && this._pauseOk()) this._togglePause();
       else if (tap && this._mode === "view") this._tap();
       else if (this._mode === "view") this._armBack();
     });
@@ -882,6 +1005,8 @@ class HcDialCard extends HTMLElement {
     return Number(st && st.attributes.supported_features) || 0;
   }
   _canTemp(st) {
+    // HC Thermostat 0.43+: a room without a TRV head follows the house target (only the boiler reaches it): read only
+    if (st.attributes?.follows_house === true) return false;
     return (this._sf(st) & (F_TEMP | F_RANGE)) !== 0;
   }
   _canPower(st) {
@@ -1034,11 +1159,45 @@ class HcDialCard extends HTMLElement {
   // HC info panel (HC Thermostat 0.34+, admins): every input, output, inner value and setting of the thermostat shown
   _infoOk() {
     const a = this._st(this._cfg?.entity)?.attributes || {};
-    return this._base.info !== false && !!this._hass?.user?.is_admin && a.hc_mode !== undefined;
+    return this._base.info !== false && !!this._hass?.user?.is_admin && (a.hc_mode !== undefined || !!this._trvHost(this._cfg?.entity));
+  }
+  // HC Thermostat 0.42+: a TRV head driven by an HC instance (its climate lists the head in trv_heads) – the info
+  // panel resolves the head to that instance
+  _trvHost(id) {
+    const states = this._hass?.states;
+    if (!id || !states) return null;
+    if (this._trvHostsOf !== states) {
+      this._trvHostsOf = states;
+      this._trvHosts = {};
+      for (const k of Object.keys(states)) {
+        if (!k.startsWith("climate.")) continue;
+        const at = states[k].attributes || {};
+        if (at.hc_mode !== undefined && Array.isArray(at.trv_heads)) for (const h of at.trv_heads) this._trvHosts[h] = k;
+      }
+    }
+    return this._trvHosts[id] || null;
   }
   _openInfo() {
     history.pushState(null, "", `/hc-info?entity=${encodeURIComponent(this._cfg.entity)}`);
     window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+  }
+  // HC Thermostat 0.42+: a thermostat that manages another integration's thermostat publishes its pause switch;
+  // paused, HC writes nothing to the managed thermostat (that one runs on its own logic)
+  _pauseOk() {
+    const a = this._st(this._cfg?.entity)?.attributes || {};
+    return typeof a.supervision_switch === "string" && !!this._st(a.supervision_switch);
+  }
+  _togglePause() {
+    const a = this._st(this._cfg.entity)?.attributes || {};
+    const wasPaused = a.supervision_paused === true;
+    this._vibrate(30);
+    this._hass.callService("switch", wasPaused ? "turn_off" : "turn_on", { entity_id: a.supervision_switch });
+    const dev = this._$("dev");
+    this._$("toasti").setAttribute("icon", wasPaused ? "mdi:play-circle" : "mdi:pause-circle");
+    this._$("toastt").textContent = this._t(wasPaused ? "pauseEnd" : "pauseStart");
+    dev.classList.add("pausing");
+    clearTimeout(this._pauseT);
+    this._pauseT = setTimeout(() => dev.classList.remove("pausing"), 1600);
   }
   _manageOk() {
     return this._base.manage !== false && !!this._hass?.user?.is_admin;
@@ -1384,6 +1543,11 @@ class HcDialCard extends HTMLElement {
     $("tlist").title = this._t("listTitle");
     $("hcinfo").style.display = this._infoOk() ? "" : "none";
     $("hcinfo").title = this._t("info");
+    const paused = a.supervision_paused === true;
+    $("pause").style.display = this._pauseOk() ? "" : "none";
+    $("pause").classList.toggle("on", paused);
+    $("pausei").setAttribute("icon", paused ? "mdi:play-circle" : "mdi:pause-circle-outline");
+    $("pause").title = this._t(paused ? "pausedTitle" : "pauseTitle");
 
     // main numbers
     const curT = parseFloat(a.current_temperature);
@@ -1418,7 +1582,7 @@ class HcDialCard extends HTMLElement {
     const U = this._unit();
     $("unit").textContent = U;
     $("pwrt").textContent = setting ? (this._pOn ? this._t("on") : this._t("off")) : "";
-    $("big").innerHTML = pOff ? this._t("off") : `${this._fmt(setting && this._field ? this._pending : curT)}<sup>${U}</sup>`;
+    $("big").innerHTML = pOff ? dialEsc(this._t("off")) : `${dialEsc(this._fmt(setting && this._field ? this._pending : curT))}<sup>${dialEsc(U)}</sup>`;
     const rd = Number.isInteger(lo) && Number.isInteger(hi) ? 0 : 1;
     $("tgt").textContent = off ? this._t("off") : range ? `${this._fmt(lo, rd)}–${this._fmt(hi, rd)}` : this._fmt(tgt);
     const was = setting && this._field ? parseFloat(a[this._field]) : tgt;
@@ -1474,6 +1638,82 @@ const EDITOR_LABELS = {
     rooms: "Room → thermostat (YAML)", room_map: "Value → room mapping (YAML)", area_labels: "Area abbreviations (YAML)",
     follow_choices: "Extra beacons for the device menu", follow_hint: "Room following (optional)",
     control: "Control type label (auto, own text or false)", preset_menu: "Preset menu on the preset icon" },
+  sr: {
+    power: "Сензор снаге (W; за кораке)",
+    power_max: "Максимална снага (W)",
+    heat_type: "Врста грејања (иконица)",
+    ht_auto: "Аутоматски (са термостата)",
+    ht_gas_boiler: "Гасни котао",
+    ht_floor: "Подно грејање",
+    ht_radiator: "Радијатор / ТРВ",
+    ht_heat_pump: "Топлотна пумпа",
+    ht_air_conditioner: "Клима-уређај (греје и хлади)",
+    ht_electric: "Електрично грејање",
+    ht_stove: "Камин / пећ на дрва",
+    ht_district: "Даљинско грејање",
+    ht_solar: "Соларно термално",
+    ht_flame: "Пламен (стара иконица)",
+    entity: "Термостат",
+    label: "Ознака (макс. 6 знакова; area = област термостата)",
+    step: "Корак",
+    heating: "Сензор стварног грејања",
+    weather: "Временска прогноза",
+    outdoor: "Спољни сензор",
+    humidity: "Сензор влажности",
+    window: "Сензори прозора/врата",
+    decision: "HC сензор одлуке",
+    tap_action: "Радња на додир",
+    timeout: "Време истека за SET (s)",
+    switch_back: "Враћање уназад (s)",
+    away_hold: "Задржавање одсутности (s)",
+    follow_app_only: "Прати само у мобилној апликацији",
+    follow: "Праћење: корисник → сензор собе (YAML)",
+    rooms: "Соба → термостат (YAML)",
+    room_map: "Мапирање вредност → соба (YAML)",
+    area_labels: "Скраћенице области (YAML)",
+    follow_choices: "Додатни бикони за мени уређаја",
+    follow_hint: "Праћење по собама (опционо)",
+    control: "Ознака типа управљања (auto, сопствени текст или false)",
+    preset_menu: "Мени унапред подешених режима на иконици режима",
+  },
+  "sr-Latn": {
+    power: "Senzor snage (W; za korake)",
+    power_max: "Maksimalna snaga (W)",
+    heat_type: "Vrsta grejanja (ikonica)",
+    ht_auto: "Automatski (sa termostata)",
+    ht_gas_boiler: "Gasni kotao",
+    ht_floor: "Podno grejanje",
+    ht_radiator: "Radijator / TRV",
+    ht_heat_pump: "Toplotna pumpa",
+    ht_air_conditioner: "Klima-uređaj (greje i hladi)",
+    ht_electric: "Električno grejanje",
+    ht_stove: "Kamin / peć na drva",
+    ht_district: "Daljinsko grejanje",
+    ht_solar: "Solarno termalno",
+    ht_flame: "Plamen (stara ikonica)",
+    entity: "Termostat",
+    label: "Oznaka (maks. 6 znakova; area = oblast termostata)",
+    step: "Korak",
+    heating: "Senzor stvarnog grejanja",
+    weather: "Vremenska prognoza",
+    outdoor: "Spoljni senzor",
+    humidity: "Senzor vlažnosti",
+    window: "Senzori prozora/vrata",
+    decision: "HC senzor odluke",
+    tap_action: "Radnja na dodir",
+    timeout: "Vreme isteka za SET (s)",
+    switch_back: "Vraćanje unazad (s)",
+    away_hold: "Zadržavanje odsutnosti (s)",
+    follow_app_only: "Prati samo u mobilnoj aplikaciji",
+    follow: "Praćenje: korisnik → senzor sobe (YAML)",
+    rooms: "Soba → termostat (YAML)",
+    room_map: "Mapiranje vrednost → soba (YAML)",
+    area_labels: "Skraćenice oblasti (YAML)",
+    follow_choices: "Dodatni bikoni za meni uređaja",
+    follow_hint: "Praćenje po sobama (opciono)",
+    control: "Oznaka tipa upravljanja (auto, sopstveni tekst ili false)",
+    preset_menu: "Meni unapred podešenih režima na ikonici režima",
+  },
 };
 class HcDialCardEditor extends HTMLElement {
   setConfig(config) {
@@ -1485,8 +1725,7 @@ class HcDialCardEditor extends HTMLElement {
     this._update();
   }
   _l(k) {
-    const lang = (this._hass?.locale?.language || "en").slice(0, 2);
-    return (EDITOR_LABELS[lang] || EDITOR_LABELS.en)[k] || k;
+    return EDITOR_LABELS[dialLang(this._hass, EDITOR_LABELS)][k] || k;
   }
   _schema() {
     return [

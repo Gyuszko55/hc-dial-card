@@ -31,7 +31,7 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
   | Versatile Thermostat | TPI, AUTO-TPI (tanuló), VT·REG (klíma fölött önszabályozással), VT |
   | OpenTherm Gateway, ebusd | OT, eBUS |
 - **Készülékenkénti választás.** A külső gyűrű hosszú nyomására kiválaszthatod, melyik jeladót kövesse *ez* a készülék (vagy egyiket se). A választást az adott készülék böngészője tárolja.
-- **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul és németül.
+- **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul, németül és szerbül (cirill betűkkel, `sr-Latn` nyelvnél latin betűkkel).
 - **Grafikus szerkesztő**, billentyűzetes kezelés, felolvasható feliratok.
 
 ## Telepítés
