@@ -7,6 +7,8 @@
 
 Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climate` entitással** működik, egy célértékkel vagy fűtés/hűtés tartománnyal. Ha kéred, **követi, melyik helyiségben van a telefonod**, és mindig annak a helyiségnek a termosztátját mutatja.
 
+**[▶ Élő demó](https://gyuszko55.github.io/hc-dial-card/)** – a böngészőben, szimulált termosztátokon, Home Assistant nélkül.
+
 ![HC Dial Card – nézet, a hűtési cél állítása, kikapcsolás](images/overview.png)
 
 ## Tudnivalók

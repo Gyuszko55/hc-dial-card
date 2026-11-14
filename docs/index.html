@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Dial Card demo</title>
+<meta name="description" content="Try the HC Dial Card – a round thermostat card for Home Assistant – in your browser, with simulated thermostats.">
+<link rel="icon" href="https://raw.githubusercontent.com/Gyuszko55/hc-dial-card/main/images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+<style>
+  :root {
+    --bg: #0f1114; --panel: #181b20; --line: #2a2f37; --text: #e8eaed; --muted: #9aa0a6; --accent: #ff7a1a; --link: #6cb6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Roboto, "Segoe UI", Arial, sans-serif; }
+  a { color: var(--link); }
+  header { max-width: 1180px; margin: 0 auto; padding: 28px 16px 8px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  header img { width: 48px; height: 48px; border-radius: 12px; }
+  header h1 { margin: 0; font-size: 26px; font-weight: 500; }
+  header .ver { color: var(--muted); font-size: 14px; margin-left: 6px; }
+  header .sp { flex: 1; }
+  .ctl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ctl label { color: var(--muted); font-size: 14px; }
+  select, button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 14px; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--accent); }
+  .intro { max-width: 1180px; margin: 0 auto; padding: 0 16px; color: var(--muted); line-height: 1.5; font-size: 15px; }
+  .intro b { color: var(--text); font-weight: 500; }
+  main { max-width: 1180px; margin: 0 auto; padding: 18px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 16px; display: flex; flex-direction: column; min-width: 0; }
+  .box h2 { margin: 0 0 2px; font-size: 17px; font-weight: 500; }
+  .box p { margin: 0 0 8px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+  .box .card { width: 100%; max-width: 360px; margin: 4px auto 0; }
+  .box .try { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .box .try b { color: var(--text); font-weight: 500; }
+  section.more { max-width: 1180px; margin: 0 auto; padding: 0 16px 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  section.more .box ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+  section.more .box li b { color: var(--text); font-weight: 500; }
+  pre { background: #0b0d10; border: 1px solid var(--line); border-radius: 10px; padding: 10px; overflow-x: auto; font-size: 12.5px; color: #cfd3d8; margin: 6px 0 0; }
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 13px; }
+  #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #262b33; border: 1px solid var(--line); color: var(--text);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; max-width: calc(100vw - 32px); z-index: 20; }
+  #toast.on { opacity: 1; }
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 14px; padding: 0; width: min(560px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog .hd { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); gap: 10px; }
+  dialog .hd h3 { margin: 0; font-size: 16px; font-weight: 500; flex: 1; }
+  dialog .bd { padding: 10px 14px 14px; max-height: 70vh; overflow: auto; font-size: 13.5px; }
+  dialog .bd p { color: var(--muted); margin: 0 0 8px; line-height: 1.45; }
+  dialog table { width: 100%; border-collapse: collapse; }
+  dialog td { padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  dialog td:first-child { color: var(--muted); white-space: nowrap; }
+  @media (max-width: 520px) { header h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<header>
+  <img src="https://raw.githubusercontent.com/Gyuszko55/hc-dial-card/main/images/icon.png" alt="">
+  <h1>HC Dial Card <span class="ver" id="ver"></span></h1>
+  <div class="sp"></div>
+  <div class="ctl">
+    <label for="lang">Card language</label>
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="hu">Magyar</option>
+      <option value="de">Deutsch</option>
+      <option value="sr">Српски (ћирилица)</option>
+      <option value="sr-Latn">Srpski (latinica)</option>
+    </select>
+    <button id="reset" type="button">Reset</button>
+  </div>
+</header>
+<p class="intro">
+  A round thermostat card for <b>Home Assistant</b>, running here in your browser on <b>simulated thermostats</b> – nothing is
+  connected to a real home. Time runs fast here: set a target and watch the room warm up or cool down.
+  The card works with any <span style="white-space:nowrap">climate</span> entity; with
+  <a href="https://github.com/Gyuszko55/hc-thermostat">HC Thermostat</a> it also shows the demand, the decision and the info panel.
+</p>
+
+<main>
+  <div class="box">
+    <h2>Gas boiler, several rooms</h2>
+    <p>HC Thermostat on a gas boiler. The card holds three rooms: the living room, the bedroom with a TRV head and the terrace air conditioner.</p>
+    <div class="card" id="c1"></div>
+    <div class="try"><b>Try:</b> long-press the display, turn the ring (or the mouse wheel), long-press again to save · double-tap for the next room · tap the preset icon · tap “i” for the info panel</div>
+  </div>
+  <div class="box">
+    <h2>Air conditioner</h2>
+    <p>An air conditioner that HC Thermostat supervises. The three steps follow the measured power; the pause button hands control back to the AC.</p>
+    <div class="card" id="c2"></div>
+    <div class="try"><b>Try:</b> long-press the display, then tap the centre to switch between heating and cooling, or the button at the bottom for on / off · tap the pause icon</div>
+  </div>
+  <div class="box">
+    <h2>Any thermostat</h2>
+    <p>A plain thermostat without HC Thermostat (here a generic thermostat with an electric heater). The card recognises the control type itself.</p>
+    <div class="card" id="c3"></div>
+    <div class="try"><b>Try:</b> long-press, turn the ring and just wait – without the second long press nothing is saved and it returns after 15 s · tap for the more-info dialog</div>
+  </div>
+</main>
+
+<section class="more">
+  <div class="box">
+    <h2>Gestures</h2>
+    <ul>
+      <li><b>Long press on the display</b> – SET mode</li>
+      <li><b>Turn the ring</b> (mouse wheel, arrow keys) – change the target</li>
+      <li><b>Long press again</b> – save; nothing is sent until then</li>
+      <li><b>Long press on the ring</b> – which room this device follows</li>
+      <li><b>Double tap</b> – next thermostat on the card</li>
+      <li><b>Preset icon</b> – preset menu with its end time</li>
+      <li><b>Button at the bottom</b> – on / off</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h2>The first card in YAML</h2>
+<pre>type: custom:hc-dial-card
+entity: climate.living_room
+weather: weather.home
+outdoor: sensor.outdoor_temperature
+humidity: sensor.outdoor_humidity
+heating: binary_sensor.boiler_burning
+decision: sensor.living_room_decision
+label: area
+rooms:
+  Bedroom: { entity: climate.bedroom_trv, trv: true }
+  Terrace:
+    entity: climate.terrace_ac
+    power: sensor.terrace_ac_power</pre>
+  </div>
+  <div class="box">
+    <h2>Install</h2>
+    <ul>
+      <li>HACS → search for <b>HC Dial Card</b> (or add <span style="white-space:nowrap">Gyuszko55/hc-dial-card</span> as a custom repository)</li>
+      <li>Add the card from the dashboard editor – it has a visual editor</li>
+      <li><a href="https://github.com/Gyuszko55/hc-dial-card">Documentation and source</a> · <a href="https://github.com/Gyuszko55/hc-thermostat">HC Thermostat</a></li>
+    </ul>
+  </div>
+</section>
+<footer>The demo uses the released card unchanged; Home Assistant is replaced by a small simulation in <a href="demo.js">demo.js</a>. MIT licence.</footer>
+
+<div id="toast"></div>
+<dialog id="info">
+  <div class="hd"><h3 id="infot">HC info</h3><button type="button" id="infox">Close</button></div>
+  <div class="bd"><p>In Home Assistant this opens the HC info panel of HC Thermostat. Here: the thermostat's attributes.</p><table id="infotab"></table></div>
+</dialog>
+
+<script>window.HC_DIAL_DEMO_SRC = "https://cdn.jsdelivr.net/gh/Gyuszko55/hc-dial-card@v1.17.0/hc-dial-card.js";</script>
+<script src="demo.js"></script>
+</body>
+</html>

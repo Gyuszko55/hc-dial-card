@@ -7,6 +7,8 @@
 
 A round wall-thermostat card for Home Assistant. It works with **any `climate` entity** – single target or heat/cool range – and can optionally **follow the room your phone is in**, so the card always shows the thermostat of the room you are standing in.
 
+**[▶ Try the live demo](https://gyuszko55.github.io/hc-dial-card/)** – in your browser, on simulated thermostats, no Home Assistant needed.
+
 ![HC Dial Card – view, setting the cooling target, switching off](images/overview.png)
 
 ## Features
