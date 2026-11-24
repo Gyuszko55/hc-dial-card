@@ -26,6 +26,7 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
   | Thermostat | Shown |
   |---|---|
   | HC Thermostat | TPI, PID, EXT (external thermostat) |
+  | HC Lite (HC Thermostat 0.79.2+: a Shelly script heats, HC manages it) | LITE·HIST, LITE·TPI – with the shadow mark while it only decides; no HC info icon |
   | Generic thermostat (on/off with hysteresis) | HIST |
   | Smart Thermostat | PID, or HIST when its PID is off |
   | SAT (Smart Autotune Thermostat) | SAT·PWM (on/off boiler), SAT·OT (modulating via OpenTherm) |

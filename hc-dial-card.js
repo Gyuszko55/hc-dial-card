@@ -61,7 +61,7 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.17.0";
+const HC_DIAL_VERSION = "1.18.0";
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -1130,6 +1130,8 @@ class HcDialCard extends HTMLElement {
     const a = st.attributes;
     const platform = this._hass?.entities?.[st.entity_id]?.platform;
     const has = (k) => a[k] !== undefined && a[k] !== null;
+    // 1.18.0: HC Lite (a Shelly script heats; HC Thermostat 0.79.2+ manages it)
+    if (a.control_type === "lite") return a.lite_ctl === "tpi" ? "LITE·TPI" : "LITE·HIST";
     if (a.control_type) {
       return { tpi: "TPI", pid: "PID", external: this._t("ext"), hysteresis: "HIST", onoff: "HIST" }[a.control_type] || String(a.control_type).toUpperCase();
     }
@@ -1159,6 +1161,7 @@ class HcDialCard extends HTMLElement {
   // HC info panel (HC Thermostat 0.34+, admins): every input, output, inner value and setting of the thermostat shown
   _infoOk() {
     const a = this._st(this._cfg?.entity)?.attributes || {};
+    if (a.control_type === "lite") return false; // 1.18.0: the HC info panel has no HC Lite data (the device has its own page)
     return this._base.info !== false && !!this._hass?.user?.is_admin && (a.hc_mode !== undefined || !!this._trvHost(this._cfg?.entity));
   }
   // HC Thermostat 0.42+: a TRV head driven by an HC instance (its climate lists the head in trv_heads) – the info

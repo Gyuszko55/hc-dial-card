@@ -26,6 +26,7 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
   | Termosztát | Kijelzés |
   |---|---|
   | HC Thermostat | TPI, PID, KÜLSŐ (külső termosztát) |
+  | HC Lite (HC Thermostat 0.79.2+: egy Shelly-szkript fűt, a HC kezeli) | LITE·HIST, LITE·TPI – árnyék-jelöléssel, amíg csak dönt; HC info ikon nélkül |
   | Generic thermostat (be/ki, hiszterézissel) | HIST |
   | Smart Thermostat | PID, vagy HIST, ha a PID ki van kapcsolva |
   | SAT (Smart Autotune Thermostat) | SAT·PWM (be/ki kazán), SAT·OT (moduláló, OpenThermen) |
