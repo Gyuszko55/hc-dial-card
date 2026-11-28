@@ -26,13 +26,14 @@ Kerek, fali termosztát kinézetű kártya Home Assistanthoz. **Bármely `climat
   | Termosztát | Kijelzés |
   |---|---|
   | HC Thermostat | TPI, PID, KÜLSŐ (külső termosztát) |
-  | HC Lite (HC Thermostat 0.79.2+: egy Shelly-szkript fűt, a HC kezeli) | LITE·HIST, LITE·TPI – árnyék-jelöléssel, amíg csak dönt; HC info ikon nélkül |
+  | HC Lite (HC Thermostat 0.79.2+: egy Shelly-szkript fűt, a HC kezeli) | LITE·HIST, LITE·TPI, LITE·PID – árnyék-jelöléssel, amíg csak dönt; HC info ikon nélkül |
   | Generic thermostat (be/ki, hiszterézissel) | HIST |
   | Smart Thermostat | PID, vagy HIST, ha a PID ki van kapcsolva |
   | SAT (Smart Autotune Thermostat) | SAT·PWM (be/ki kazán), SAT·OT (moduláló, OpenThermen) |
   | Better Thermostat | BT, BT·PID, BT·MPC (a kalibrációja szerint) |
   | Versatile Thermostat | TPI, AUTO-TPI (tanuló), VT·REG (klíma fölött önszabályozással), VT |
   | OpenTherm Gateway, ebusd | OT, eBUS |
+- **Miért fűt / miért nem (HC Thermostat 0.87+).** A tárcsa alatt egy sor mondja meg, mit csinál a HC és miért („Nem fűt – a ház elérte a célt (22,6 °C, cél 22,5 °C)”); koppintásra a többi: honnan jön a cél, mikor változik, mit tehetsz. A termosztát saját `summary_*` attribútumaiból jön (szelepfejes helyiségnél is), különben a `decision` szenzorból; a szöveg a HA nyelvén. `summary: false` elrejti.
 - **Készülékenkénti választás.** A külső gyűrű hosszú nyomására kiválaszthatod, melyik jeladót kövesse *ez* a készülék (vagy egyiket se). A választást az adott készülék böngészője tárolja.
 - **°C / °F** a Home Assistant beállításából, a számformátum a nyelvi beállításból. Szövegek magyarul, angolul, németül és szerbül (cirill betűkkel, `sr-Latn` nyelvnél latin betűkkel).
 - **Grafikus szerkesztő**, billentyűzetes kezelés, felolvasható feliratok.
@@ -215,6 +216,7 @@ Billentyűzet: Enter = SET / rögzítés, Esc = mégse, nyilak = lépés, Szók�
 | `timeout` | 15 | ennyi másodperc után lép ki a SET mód mentés nélkül |
 | `step_angle` | 18 | a gyűrű hány fokonként lép egyet |
 | `preset_menu` | true | a preset ikonra koppintva preset-menü nyílik |
+| `summary` | true | HC Thermostat 0.87+: a tárcsa alatt egy sor arról, miért fűt / miért nem; koppintásra a részletek |
 | `control` | `auto` | a szabályozás fajtája bal fent: `auto`, saját szöveg vagy `false` |
 | `follow` | – | helyiség-szenzor, vagy `{felhasználónév vagy azonosító: szenzor}` |
 | `follow_app_only` | false | csak a Companion appban kövessen |

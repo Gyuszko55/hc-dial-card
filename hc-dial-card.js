@@ -61,7 +61,9 @@
  * Range thermostats (target_temp_low/high, e.g. Better Thermostat heat_cool): in SET mode a short tap switches
  * between the lower (heating) and the upper (cooling) target.
  */
-const HC_DIAL_VERSION = "1.18.0";
+const HC_DIAL_VERSION = "1.19.0";
+// 1.19.0: text from an entity's attributes goes into HTML escaped
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const MODE_ICON = {
   heat: ["mdi:fire", "#ff7a1a"], cool: ["mdi:snowflake", "#2f8cff"], heat_cool: ["mdi:sun-snowflake-variant", "#8e6cf0"],
   auto: ["mdi:thermostat-auto", "#3bb54a"], dry: ["mdi:water-percent", "#26a69a"], fan_only: ["mdi:fan", "#00acc1"],
@@ -769,6 +771,18 @@ class HcDialCard extends HTMLElement {
         .menu.pm .mi small { display:block; font-size:calc(2.3 * var(--cqf)); color:#9aa; margin-top:calc(.2 * var(--cq)); }
         .menu.pm .mi.sel small { color:#d9a36a; }
         .unav { left:50%; top:50%; font-size:calc(4 * var(--cqf)); color:#e53935; display:none; }
+        /* 1.19.0: HC's plain "why heating / why not" under the dial; a tap opens the rest */
+        .sum { max-width:520px; margin:calc(2 * var(--cq)) auto 0; padding:calc(1.4 * var(--cq)) calc(2.4 * var(--cq));
+               border-radius:calc(2.4 * var(--cq)); background:var(--secondary-background-color, rgba(127,127,127,.12));
+               color:var(--primary-text-color, #e8e8e8); font-family:var(--hc-dial-font); font-size:calc(3.3 * var(--cqf));
+               line-height:1.35; cursor:pointer; border-left:calc(.8 * var(--cq)) solid #8a9099; box-sizing:border-box; }
+        .sum[hidden] { display:none; }
+        .sum.heating { border-left-color:#ff7a1a; } .sum.cooling { border-left-color:#4fb3ff; } .sum.fault { border-left-color:#e53935; }
+        .sum.paused, .sum.waiting { border-left-color:#ffb300; } .sum.idle { border-left-color:#43a047; }
+        .sum b { font-weight:600; } .sum .first { color:var(--primary-text-color, #e8e8e8); }
+        .sum .more { display:none; margin:calc(.8 * var(--cq)) 0 0; padding-left:calc(3.6 * var(--cq)); color:var(--secondary-text-color, #b0b0b0); }
+        .sum.open .more { display:block; } .sum .more li { margin:calc(.3 * var(--cq)) 0; }
+        .sum .note { font-style:italic; color:var(--secondary-text-color, #b0b0b0); font-size:calc(2.8 * var(--cqf)); }
         .dev.unavail .unav { display:flex; }
       </style>
       <ha-card>
@@ -804,8 +818,14 @@ class HcDialCard extends HTMLElement {
             <div class="menu" id="menu"></div>
           </div>
         </div>
+        <div class="sum" id="sum" hidden role="button" tabindex="0"></div>
       </ha-card>`;
     this._$ = (id) => root.getElementById(id);
+    // 1.19.0: a tap / Enter on the summary opens or closes its details (nothing else happens)
+    const sum = root.getElementById("sum");
+    const flip = (e) => { e.stopPropagation(); this._sumOpen = !this._sumOpen; sum.classList.toggle("open", this._sumOpen); };
+    sum.addEventListener("click", flip);
+    sum.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(e); } });
     this._bindPress();
     this._bindThermMenu();
     this._bindRing();
@@ -1131,7 +1151,7 @@ class HcDialCard extends HTMLElement {
     const platform = this._hass?.entities?.[st.entity_id]?.platform;
     const has = (k) => a[k] !== undefined && a[k] !== null;
     // 1.18.0: HC Lite (a Shelly script heats; HC Thermostat 0.79.2+ manages it)
-    if (a.control_type === "lite") return a.lite_ctl === "tpi" ? "LITE·TPI" : "LITE·HIST";
+    if (a.control_type === "lite") return a.lite_ctl === "tpi" ? "LITE·TPI" : a.lite_ctl === "pid" ? "LITE·PID" : "LITE·HIST";
     if (a.control_type) {
       return { tpi: "TPI", pid: "PID", external: this._t("ext"), hysteresis: "HIST", onoff: "HIST" }[a.control_type] || String(a.control_type).toUpperCase();
     }
@@ -1442,6 +1462,28 @@ class HcDialCard extends HTMLElement {
     this._$("day").textContent = this._t("days")[d.getDay()];
   }
 
+  // 1.19.0: HC Thermostat's plain summary (0.87.0+) – the thermostat's own attributes, else the HC decision
+  // sensor's; `summary: false` hides it. The text comes in Home Assistant's language from HC.
+  _summary(a) {
+    const el = this._$("sum");
+    if (!el) return;
+    const dec = this._st(this._cfg.decision);
+    const src = a && a.summary_headline ? a : dec && dec.attributes.summary_headline ? dec.attributes : null;
+    if (this._cfg.summary === false || !src) { el.hidden = true; return; }
+    const lines = Array.isArray(src.summary_lines) ? src.summary_lines : [];
+    const key = JSON.stringify([src.summary_state, src.summary_headline, lines, src.summary_note]);
+    el.hidden = false;
+    if (key === this._sumKey) return;
+    this._sumKey = key;
+    el.className = `sum ${String(src.summary_state || "").replace(/[^a-z]/g, "")}${this._sumOpen ? " open" : ""}`;
+    const rest = lines.slice(1);
+    // the first line may start with the state word itself ("Heating, because…"): then the word is not repeated
+    const head = String(src.summary_headline || ""), first = lines.length ? String(lines[0]) : "";
+    const dup = head && first.toLowerCase().startsWith(head.toLowerCase());
+    el.innerHTML = `<div class="first"><b>${esc(head)}</b>${first ? (dup ? esc(first.slice(head.length)) : ` – ${esc(first)}`) : ""}</div>`
+      + (rest.length || src.summary_note ? `<ul class="more">${src.summary_note ? `<li class="note">${esc(src.summary_note)}</li>` : ""}${rest.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "");
+    el.setAttribute("aria-expanded", this._sumOpen ? "true" : "false");
+  }
   _render(keepToast) {
     if (!this._hass || !this._$) return;
     const $ = this._$;
@@ -1457,8 +1499,9 @@ class HcDialCard extends HTMLElement {
     $("unav").textContent = this._t("unavailable");
     $("wifi").classList.toggle("off", unavail);
     $("wifii").setAttribute("icon", unavail ? "mdi:wifi-off" : "mdi:wifi");
-    if (!st) return;
+    if (!st) { this._summary(null); return; }
     const a = st.attributes;
+    this._summary(a);
 
     // weather + outdoor
     const w = this._st(cfg.weather);
@@ -1632,7 +1675,7 @@ const EDITOR_LABELS = {
     follow_app_only: "Csak a mobil appban kövessen", follow: "Követés: felhasználó → helyiség-szenzor (YAML)",
     rooms: "Helyiség → termosztát (YAML)", room_map: "Érték → helyiség átváltás (YAML)", area_labels: "Terület-rövidítések (YAML)",
     follow_choices: "További jeladók a készülék-menübe", follow_hint: "Helykövetés (opcionális)",
-    control: "Szabályozás jelzése (auto, saját szöveg vagy false)", preset_menu: "Preset-menü a preset ikonon" },
+    control: "Szabályozás jelzése (auto, saját szöveg vagy false)", preset_menu: "Preset-menü a preset ikonon", summary: "„Miért fűt / miért nem?” a tárcsa alatt (HC 0.87+)" },
   en: { power: "Power sensor (W; for the steps)", power_max: "Maximum power (W)", heat_type: "Kind of heat (icon)", ht_auto: "Automatic (from the thermostat)", ht_gas_boiler: "Gas boiler", ht_floor: "Floor heating", ht_radiator: "Radiator / TRV", ht_heat_pump: "Heat pump", ht_air_conditioner: "Air conditioner (heats and cools)", ht_electric: "Electric heating", ht_stove: "Fireplace / wood stove", ht_district: "District heating", ht_solar: "Solar thermal", ht_flame: "Flame (old icon)",
     entity: "Thermostat", label: "Label (max 6 chars; area = thermostat's area)", step: "Step", heating: "Actual heating sensor",
     weather: "Weather", outdoor: "Outdoor sensor", humidity: "Humidity sensor", window: "Window/door sensors", decision: "HC decision sensor",
@@ -1640,7 +1683,7 @@ const EDITOR_LABELS = {
     follow_app_only: "Follow only in the mobile app", follow: "Follow: user → room sensor (YAML)",
     rooms: "Room → thermostat (YAML)", room_map: "Value → room mapping (YAML)", area_labels: "Area abbreviations (YAML)",
     follow_choices: "Extra beacons for the device menu", follow_hint: "Room following (optional)",
-    control: "Control type label (auto, own text or false)", preset_menu: "Preset menu on the preset icon" },
+    control: "Control type label (auto, own text or false)", preset_menu: "Preset menu on the preset icon", summary: "\"Why heating / why not?\" under the dial (HC 0.87+)" },
   sr: {
     power: "Сензор снаге (W; за кораке)",
     power_max: "Максимална снага (W)",
@@ -1678,6 +1721,7 @@ const EDITOR_LABELS = {
     follow_hint: "Праћење по собама (опционо)",
     control: "Ознака типа управљања (auto, сопствени текст или false)",
     preset_menu: "Мени унапред подешених режима на иконици режима",
+    summary: "„Зашто греје / зашто не?” испод бројчаника (HC 0.87+)",
   },
   "sr-Latn": {
     power: "Senzor snage (W; za korake)",
@@ -1716,6 +1760,7 @@ const EDITOR_LABELS = {
     follow_hint: "Praćenje po sobama (opciono)",
     control: "Oznaka tipa upravljanja (auto, sopstveni tekst ili false)",
     preset_menu: "Meni unapred podešenih režima na ikonici režima",
+    summary: "„Zašto grije / zašto ne?” ispod brojčanika (HC 0.87+)",
   },
 };
 class HcDialCardEditor extends HTMLElement {
@@ -1754,6 +1799,7 @@ class HcDialCardEditor extends HTMLElement {
         { name: "control", selector: { text: {} } },
         { name: "preset_menu", selector: { boolean: {} } },
       ] },
+      { name: "summary", selector: { boolean: {} } },
       { type: "grid", name: "", schema: [
         { name: "timeout", selector: { number: { min: 5, max: 120, mode: "box" } } },
         { name: "switch_back", selector: { number: { min: 3, max: 120, mode: "box" } } },

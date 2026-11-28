@@ -26,13 +26,14 @@ A round wall-thermostat card for Home Assistant. It works with **any `climate` e
   | Thermostat | Shown |
   |---|---|
   | HC Thermostat | TPI, PID, EXT (external thermostat) |
-  | HC Lite (HC Thermostat 0.79.2+: a Shelly script heats, HC manages it) | LITE·HIST, LITE·TPI – with the shadow mark while it only decides; no HC info icon |
+  | HC Lite (HC Thermostat 0.79.2+: a Shelly script heats, HC manages it) | LITE·HIST, LITE·TPI, LITE·PID – with the shadow mark while it only decides; no HC info icon |
   | Generic thermostat (on/off with hysteresis) | HIST |
   | Smart Thermostat | PID, or HIST when its PID is off |
   | SAT (Smart Autotune Thermostat) | SAT·PWM (on/off boiler), SAT·OT (modulating via OpenTherm) |
   | Better Thermostat | BT, BT·PID, BT·MPC (by its calibration) |
   | Versatile Thermostat | TPI, AUTO-TPI (learning), VT·REG (over a climate with self-regulation), VT |
   | OpenTherm Gateway, ebusd | OT, eBUS |
+- **Why heating / why not (HC Thermostat 0.87+).** Under the dial one line says what HC does and why ("Not heating – the house reached its target (22.6 °C, target 22.5 °C)"); a tap opens the rest: where the target comes from, when it changes, what you can do. It comes from the thermostat's own `summary_*` attributes (a TRV room's too), else from `decision`; the text is in Home Assistant's language. `summary: false` hides it.
 - **Per-device choice.** Long-press the outer ring to choose which beacon *this* device follows (or none). Stored in the browser of that device.
 - **°C / °F** from your Home Assistant settings, number format from your locale. Texts in English, Hungarian, German and Serbian (Cyrillic, and Latin with the `sr-Latn` language).
 - **Visual editor**, keyboard control and screen-reader labels.
@@ -215,6 +216,7 @@ Keyboard: Enter = SET / save, Esc = cancel, arrows = step, Space = heating/cooli
 | `timeout` | 15 | seconds before SET mode closes without saving |
 | `step_angle` | 18 | ring degrees per step |
 | `preset_menu` | true | tap on the preset icon opens the preset menu |
+| `summary` | true | HC Thermostat 0.87+: the plain "why heating / why not" line under the dial, a tap shows the details |
 | `control` | `auto` | control type at the top left: `auto`, your own text, or `false` |
 | `follow` | – | room sensor, or `{user name or id: sensor}` |
 | `follow_app_only` | false | follow only inside the Companion app |
